@@ -53,14 +53,23 @@
           if (!pts.length) return;
           var path = [];
           var bounds = new AMap.Bounds();
-          pts.forEach(function (p) {
-            new AMap.Marker({
-              position: [p.lng, p.lat],
-              title: p.name + (p.location ? " · " + p.location : ""),
-              map: map
-            });
-            bounds.extend([p.lng, p.lat]);
-            path.push([p.lng, p.lat]);
+          pts.forEach(function (p, i) {
+            var lng = Number(p.lng), lat = Number(p.lat);
+            if (!isFinite(lng) || !isFinite(lat)) {
+              console.warn("跳过无效坐标 #" + i, p);
+              return;
+            }
+            try {
+              new AMap.Marker({
+                position: [lng, lat],
+                title: p.name + (p.location ? " · " + p.location : ""),
+                map: map
+              });
+              bounds.extend([lng, lat]);
+              path.push([lng, lat]);
+            } catch (e) {
+              console.warn("点位 #" + i + " 创建失败:", e && e.message, p);
+            }
           });
           if (path.length > 1) {
             new AMap.Polyline({
@@ -71,7 +80,9 @@
               map: map
             });
           }
-          map.setBounds(bounds, false, [50, 50, 50, 50]);
+          if (path.length) {
+            try { map.setBounds(bounds, false); } catch (e) { console.warn("setBounds:", e); }
+          }
           // 框完范围后再 resize，确保瓦片按真实尺寸铺满
           setTimeout(function () { try { map.resize(); } catch (e) { } }, 100);
         })
@@ -80,7 +91,9 @@
   </script>
 
   <!-- 高德 JS API：把 你的高德KEY 换成你自己的 Web 端 JS API key -->
-  <script src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"
+  <!-- crossorigin 让跨域脚本的真实报错暴露出来（否则只显示 Script error.） -->
+  <script crossorigin="anonymous"
+    src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"
     onerror="window.__mapErr = true;"></script>
 
   <!-- 调试条 + 加载兜底：把当前访问地址和报错直接显示在屏幕上 -->
@@ -96,6 +109,11 @@
       var m = e && (e.message || (e.error && e.error.message) || e.filename) || "未知错误";
       setDebug("host: " + location.host + " | 报错: " + m);
     }, true);
+    // 捕获 Promise 拒绝（部分高德错误走这里）
+    window.addEventListener("unhandledrejection", function (e) {
+      var m = e && e.reason && (e.reason.message || e.reason) || "Promise 错误";
+      setDebug("host: " + location.host + " | 报错: " + m);
+    });
 
     // 6 秒后无论是否“初始化成功”，只要屏幕还空白就给出白名单排查
     setTimeout(function () {
