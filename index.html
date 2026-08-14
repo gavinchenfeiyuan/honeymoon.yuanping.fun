@@ -10,10 +10,12 @@
 
 <body>
 
-  <!-- 第一块：满屏高德地图（行程点位 + 路线） -->
+  <!-- 第一块：竖向 4:3 地图画框（行程点位 + 路线） -->
   <section class="block block-first" id="map-block">
-    <div id="map"></div>
-    <div id="map-hint">地图加载中…<br />若空白，请在 index.html 底部填入高德 Web JS API 的 key 与安全密钥</div>
+    <div id="map-frame">
+      <div id="map"></div>
+      <div id="map-hint">地图加载中…<br />若空白，请在 index.html 底部填入高德 Web JS API 的 key 与安全密钥</div>
+    </div>
   </section>
 
   <section class="block">BBBB</section>
@@ -97,8 +99,8 @@
       return col;
     }
 
-    // 地图块：厚边框，颜色从 64 色库随机抽
-    var mb = document.getElementById("map-block");
+    // 地图画框：厚边框，颜色从 64 色库随机抽
+    var mb = document.getElementById("map-frame");
     if (mb) {
       var bn = Math.floor(Math.random() * 64) + 1;
       mb.style.borderColor = pickColor(bn);
