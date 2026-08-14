@@ -28,7 +28,7 @@ body {
   /* 默认底色，JS 加载前不闪黑 */
 }
 
-/* 首块：满屏沙底，地图画框贴齐四条屏幕边，无上下留白 */
+/* 首块：满屏沙底，竖版 4:3 地图画框居中，上下留白由沙色填充 */
 .block-first {
   position: relative;
   min-height: 100vh;
@@ -41,16 +41,15 @@ body {
   background: #E8E3D8;
 }
 
-/* 地图画框：满屏首屏，厚边框贴边，颜色由 JS 随机取 */
+/* 地图画框：竖版 4:3，宽度贴满屏幕，高度按 3:4 自动算，颜色由 JS 随机取 */
 #map-frame {
   /* 厚边框厚度，改这里即可 */
   --map-border: 36px;
   position: relative;
   width: 100%;
   max-width: none;
-  /* 占满首屏，去掉上下留白（与 4:3 互斥） */
-  height: 100vh;
-  height: 100dvh;
+  /* 宽:高 = 3:4（竖版 4:3），高度由宽度自动算出 */
+  aspect-ratio: 3 / 4;
   border: var(--map-border) solid transparent;
   box-sizing: border-box;
 }
@@ -94,22 +93,6 @@ body {
   color: #4a463d;
   padding: 24px;
   line-height: 1.7;
-}
-
-/* 调试条：把当前访问地址和报错显示在屏幕上，便于确认白名单 */
-#debug {
-  position: fixed;
-  left: 8px;
-  bottom: 8px;
-  z-index: 9999;
-  max-width: 70vw;
-  font: 11px/1.4 monospace;
-  color: #222;
-  background: rgba(255, 255, 255, .85);
-  border: 1px solid #999;
-  border-radius: 4px;
-  padding: 4px 6px;
-  word-break: break-all;
 }
 
 /* ===== 64 种秋景配色 =====

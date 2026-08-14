@@ -13,9 +13,7 @@
   <!-- 临时版本号：辨认变更用，确认后删掉这一行即可 -->
   <div id="ver"
     style="position:fixed;top:6px;right:8px;z-index:99999;font:12px/1.4 monospace;color:#222;background:rgba(255,255,255,.88);border:1px solid #999;border-radius:4px;padding:3px 6px;pointer-events:none;">
-    v1.7</div>
-
-  <div id="debug"></div>
+    v1.8</div>
 
   <!-- 第一块：竖向 4:3 地图画框（行程点位 + 路线） -->
   <section class="block block-first" id="map-block">
@@ -38,7 +36,6 @@
   <!-- 地图初始化（高德 JS API 加载完成后回调） -->
   <script>
     function onAMapLoaded() {
-      window.__mapOk = true;
       // 显式给出中心点，避免默认中心在极端情况下为 NaN
       var map = new AMap.Map("map", {
         zoom: 5,
@@ -135,13 +132,7 @@
       // 尺寸兜底：加载后 & 窗口尺寸变化时重算瓦片
       window.addEventListener("resize", function () { try { map.resize(); } catch (e) { } });
       setTimeout(function () {
-        try {
-          map.resize();
-          var s = map.getSize();
-          var w = s.getWidth(), h = s.getHeight();
-          window.__mapSize = { width: w, height: h };
-          if (window.setDebug) setDebug("host: " + location.host + " | 地图 " + w + "x" + h);
-        } catch (e) { }
+        try { map.resize(); } catch (e) { }
       }, 300);
     }
   </script>
@@ -151,43 +142,6 @@
   <script crossorigin="anonymous"
     src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"
     onerror="window.__mapErr = true;"></script>
-
-  <!-- 调试条 + 加载兜底：把当前访问地址和报错直接显示在屏幕上 -->
-  <script>
-    var dbg = document.getElementById("debug");
-    function setDebug(msg) {
-      if (dbg) dbg.textContent = msg;
-    }
-    setDebug("host: " + location.host + " | key已填");
-
-    // 捕获全局报错（含高德异步错误，如白名单不匹配 USERKEY_PLAT_NOMATCH）
-    window.addEventListener("error", function (e) {
-      var m = e && (e.message || (e.error && e.error.message) || e.filename) || "未知错误";
-      setDebug("host: " + location.host + " | 报错: " + m);
-    }, true);
-    // 捕获 Promise 拒绝（部分高德错误走这里）
-    window.addEventListener("unhandledrejection", function (e) {
-      var m = e && e.reason && (e.reason.message || e.reason) || "Promise 错误";
-      setDebug("host: " + location.host + " | 报错: " + m);
-    });
-
-    // 6 秒后无论是否“初始化成功”，只要屏幕还空白就给出白名单排查
-    setTimeout(function () {
-      var h = document.getElementById("map-hint");
-      var sizeOk = false;
-      try { sizeOk = window.__mapSize && window.__mapSize.height > 50; } catch (e) { }
-      if (window.__mapOk && sizeOk) return; // 已正常出图
-      if (h) {
-        h.style.display = "flex";
-        h.innerHTML =
-          "当前访问地址：<b>" + location.host + "</b><br><br>" +
-          "请确认高德 key 的「域名白名单」里有一项<b>完全等于上面这个地址</b>（或它的 IP）。<br>" +
-          "手机上 localhost / 127.0.0.1 指向手机自己，连不到电脑服务，请勿用。<br>" +
-          "白名单每行一个，不要带 ~~~ 等符号：<br>" +
-          "例：<br>192.168.x.x（你电脑局域网 IP）<br>honeymoon.yuanping.fun<br>localhost";
-      }
-    }, 6000);
-  </script>
 
   <!-- 其余块：从 64 种秋景配色随机上色（地图块除外） -->
   <script>
