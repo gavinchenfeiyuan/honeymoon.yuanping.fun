@@ -28,28 +28,29 @@ body {
   /* 默认底色，JS 加载前不闪黑 */
 }
 
-/* 首块：满屏沙底，居中放一个竖向 4:3 的地图画框 */
+/* 首块：满屏沙底，地图画框贴齐四条屏幕边，无上下留白 */
 .block-first {
   position: relative;
   min-height: 100vh;
+  /* 移动端更准确，避开地址栏高度差 */
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 去掉侧边留白，画框贴屏幕左右边 */
   padding: 0;
   background: #E8E3D8;
 }
 
-/* 地图画框：4:3 竖版（宽:高 = 3:4），满宽贴边，厚边框颜色由 JS 随机取 */
+/* 地图画框：满屏首屏，厚边框贴边，颜色由 JS 随机取 */
 #map-frame {
   /* 厚边框厚度，改这里即可 */
   --map-border: 56px;
   position: relative;
   width: 100%;
-  /* 取消上限，手机上铺满 */
   max-width: none;
-  /* 竖着 4/3 */
-  aspect-ratio: 3 / 4;
+  /* 占满首屏，去掉上下留白（与 4:3 互斥） */
+  height: 100vh;
+  height: 100dvh;
   border: var(--map-border) solid transparent;
   box-sizing: border-box;
 }
