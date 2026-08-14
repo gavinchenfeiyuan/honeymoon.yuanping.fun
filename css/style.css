@@ -63,17 +63,6 @@ body {
   z-index: 1;
 }
 
-/* 底图染色层：与边框同色系、低透明度，叠在浅色底图上；
-   pointer-events 穿透，不挡地图触摸/点标记 */
-#map-tint {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background: transparent;
-  opacity: 0.20;
-}
-
 /* 缺失点位报错条：plan 里有名字、但 place.json 里找不到坐标时显示 */
 #map-err {
   position: absolute;

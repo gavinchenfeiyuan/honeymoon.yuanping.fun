@@ -13,13 +13,12 @@
   <!-- 临时版本号：辨认变更用，确认后删掉这一行即可 -->
   <div id="ver"
     style="position:fixed;top:6px;right:8px;z-index:99999;font:12px/1.4 monospace;color:#222;background:rgba(255,255,255,.88);border:1px solid #999;border-radius:4px;padding:3px 6px;pointer-events:none;">
-    v0.26</div>
+    v0.27</div>
 
   <!-- 第一块：竖向 4:3 地图画框（行程点位 + 路线） -->
   <section class="block block-first" id="map-block">
     <div id="map-frame">
       <div id="map"></div>
-      <div id="map-tint"></div>
       <div id="map-err"></div>
       <div id="map-hint">地图加载中…<br />若空白，请在 index.html 底部填入高德 Web JS API 的 key 与安全密钥</div>
     </div>
@@ -46,7 +45,7 @@
       var hint = document.getElementById("map-hint");
       if (hint) hint.style.display = "none";
 
-      // 底图用浅色预置（远山黛），保证可读；同色系色调由覆盖层 #map-tint 实现
+      // 底图用浅色预置（远山黛），保证可读
       try { map.setMapStyle("amap://styles/whitesmoke"); } catch (e) { }
       if (map && map.on) map.on("complete", function () {
         try { map.setMapStyle("amap://styles/whitesmoke"); } catch (e) { }
@@ -249,11 +248,7 @@
     var mb = document.getElementById("map-frame");
     if (mb) {
       var bn = Math.floor(Math.random() * 64) + 1;
-      var borderCol = pickColor(bn);
-      mb.style.borderColor = borderCol;
-      // 底图染色层：与边框同色系，低透明度叠在浅色底图上
-      var tintEl = document.getElementById("map-tint");
-      if (tintEl) tintEl.style.backgroundColor = borderCol;
+      mb.style.borderColor = pickColor(bn);
     }
 
     // 其余矩形块：随机上色
