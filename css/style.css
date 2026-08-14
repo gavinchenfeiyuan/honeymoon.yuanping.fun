@@ -28,9 +28,32 @@ body {
   /* 默认底色，JS 加载前不闪黑 */
 }
 
-/* 首块满屏 */
+/* 首块满屏（地图） */
 .block-first {
+  position: relative;
   min-height: 100vh;
+  display: block;
+  padding: 0;
+  background: #E8E3D8;
+}
+
+#map {
+  width: 100%;
+  height: 100vh;
+}
+
+#map-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 15px;
+  color: #4a463d;
+  padding: 24px;
+  line-height: 1.7;
 }
 
 /* ===== 64 种秋景配色 =====

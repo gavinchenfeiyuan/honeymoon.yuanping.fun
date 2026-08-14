@@ -10,16 +10,67 @@
 
 <body>
 
-  <section class="block block-first">AAAA</section>
+  <!-- 第一块：满屏高德地图（行程点位 + 路线） -->
+  <section class="block block-first" id="map-block">
+    <div id="map"></div>
+    <div id="map-hint">地图加载中…<br />若空白，请在 index.html 底部填入高德 Web JS API 的 key 与安全密钥</div>
+  </section>
+
   <section class="block">BBBB</section>
   <section class="block">CCCC</section>
   <section class="block">DDDD</section>
 
+  <!-- 高德安全密钥：必须在加载 JS API 之前设置 -->
   <script>
-    // 每个矩形块从 64 种秋景配色里随机选一种
-    document.querySelectorAll('.block').forEach(function (b) {
+    window._AMapSecurityConfig = { securityJsCode: "8fa56ff20532321e38b42a31b32ed125" };
+  </script>
+
+  <!-- 地图初始化（高德 JS API 加载完成后回调） -->
+  <script>
+    function onAMapLoaded() {
+      var map = new AMap.Map("map", { zoom: 6, viewMode: "2D" });
+      var hint = document.getElementById("map-hint");
+      if (hint) hint.style.display = "none";
+
+      fetch("place.json")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var pts = (data && data.place) || [];
+          if (!pts.length) return;
+          var path = [];
+          var bounds = new AMap.Bounds();
+          pts.forEach(function (p) {
+            new AMap.Marker({
+              position: [p.lng, p.lat],
+              title: p.name + (p.location ? " · " + p.location : ""),
+              map: map
+            });
+            bounds.extend([p.lng, p.lat]);
+            path.push([p.lng, p.lat]);
+          });
+          if (path.length > 1) {
+            new AMap.Polyline({
+              path: path,
+              strokeColor: "#B23A2E",
+              strokeWeight: 3,
+              strokeOpacity: 0.85,
+              map: map
+            });
+          }
+          map.setBounds(bounds, false, [50, 50, 50, 50]);
+        })
+        .catch(function (e) { console.error("读取 place.json 失败", e); });
+    }
+  </script>
+
+  <!-- 高德 JS API：把 你的高德KEY 换成你自己的 Web 端 JS API key -->
+  <script src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"></script>
+
+  <!-- 其余块：从 64 种秋景配色随机上色（地图块除外） -->
+  <script>
+    document.querySelectorAll(".block:not(#map-block)").forEach(function (b) {
       var n = Math.floor(Math.random() * 64) + 1;
-      b.classList.add('c' + n);
+      b.classList.add("c" + n);
     });
   </script>
 
