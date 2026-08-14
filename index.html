@@ -28,6 +28,7 @@
   <!-- 地图初始化（高德 JS API 加载完成后回调） -->
   <script>
     function onAMapLoaded() {
+      window.__mapOk = true;
       var map = new AMap.Map("map", { zoom: 6, viewMode: "2D" });
       var hint = document.getElementById("map-hint");
       if (hint) hint.style.display = "none";
@@ -64,7 +65,24 @@
   </script>
 
   <!-- 高德 JS API：把 你的高德KEY 换成你自己的 Web 端 JS API key -->
-  <script src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"></script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"
+    onerror="window.__mapErr = true;"></script>
+
+  <!-- 加载兜底：6 秒未出图，给出排查提示 -->
+  <script>
+    setTimeout(function () {
+      if (window.__mapOk) return;
+      var h = document.getElementById("map-hint");
+      if (!h) return;
+      h.style.display = "flex";
+      h.innerHTML =
+        "地图未能加载。<br><br>" +
+        "请按顺序排查：<br>" +
+        "① 是否用<b>本机浏览器</b>打开 http://localhost:8011（应用内预览窗的域名过不了白名单）；<br>" +
+        "② 高德 key 的「域名白名单」是否加了 <b>localhost</b> 和 <b>127.0.0.1</b>；<br>" +
+        "③ 按 F12 看 Console 报错（如 USERKEY_PLAT_NOMATCH = 白名单问题）。";
+    }, 6000);
+  </script>
 
   <!-- 其余块：从 64 种秋景配色随机上色（地图块除外） -->
   <script>

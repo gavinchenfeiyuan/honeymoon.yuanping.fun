@@ -30,24 +30,30 @@ body {
 
 /* 首块满屏（地图） */
 .block-first {
+  --map-border: 56px;
+  /* 厚边框厚度，改这里即可 */
   position: relative;
   min-height: 100vh;
   display: block;
   padding: 0;
   background: #E8E3D8;
-  border: 56px solid transparent;
+  border: var(--map-border) solid transparent;
   /* 厚边框：颜色由 JS 从 64 色库随机取 */
 }
 
 #map {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  height: 100%;
-  /* 随块内区域自适应，避免被边框挤出 */
+  /* 确定高度：视口高减去上下边框，避免百分比塌成 0 */
+  height: calc(100vh - var(--map-border) * 2);
 }
 
 #map-hint {
   position: absolute;
   inset: 0;
+  pointer-events: none;
+  /* 加载前也别拦截对地图的触摸 */
   display: flex;
   flex-direction: column;
   align-items: center;
