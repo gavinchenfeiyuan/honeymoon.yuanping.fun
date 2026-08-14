@@ -100,325 +100,325 @@ body {
 }
 
 /* ===== 64 种秋景配色 =====
-   16 种中国古典色 x 4 轮（.c1~.c16 藤黄..天青，.c17 起循环） */
+   16 种中国古典色(莫兰迪灰调) x 4 轮（.c1~.c16 一组，.c17 起循环） */
 
 .c1 {
-  background: rgb(255, 182, 30);
-  color: #1A1A1A
+  background: #AF8D4E;
+  color: #FFFFFF
 }
 
 .c2 {
-  background: rgb(66, 80, 102);
+  background: #4A5259;
   color: #FFFFFF
 }
 
 .c3 {
-  background: rgb(255, 166, 49);
-  color: #1A1A1A
+  background: #B98C5E;
+  color: #FFFFFF
 }
 
 .c4 {
-  background: rgb(157, 41, 51);
+  background: #7F4147;
   color: #FFFFFF
 }
 
 .c5 {
-  background: rgb(214, 236, 240);
+  background: #D9D4C8;
   color: #1A1A1A
 }
 
 .c6 {
-  background: rgb(226, 156, 69);
-  color: #1A1A1A
+  background: #A77E51;
+  color: #FFFFFF
 }
 
 .c7 {
-  background: rgb(120, 146, 98);
+  background: #7B7A5F;
   color: #FFFFFF
 }
 
 .c8 {
-  background: rgb(255, 70, 31);
+  background: #A2614A;
   color: #FFFFFF
 }
 
 .c9 {
-  background: rgb(217, 182, 17);
-  color: #1A1A1A
+  background: #9D8B50;
+  color: #FFFFFF
 }
 
 .c10 {
-  background: rgb(5, 119, 72);
+  background: #4C5A47;
   color: #FFFFFF
 }
 
 .c11 {
-  background: rgb(202, 105, 36);
+  background: #97602F;
   color: #FFFFFF
 }
 
 .c12 {
-  background: rgb(240, 194, 57);
+  background: #C0A86B;
   color: #1A1A1A
 }
 
 .c13 {
-  background: rgb(132, 90, 51);
+  background: #6E5540;
   color: #FFFFFF
 }
 
 .c14 {
-  background: rgb(255, 241, 67);
+  background: #CFC298;
   color: #1A1A1A
 }
 
 .c15 {
-  background: rgb(66, 102, 102);
+  background: #46504B;
   color: #FFFFFF
 }
 
 .c16 {
-  background: rgb(63, 143, 168);
+  background: #6E7F80;
   color: #FFFFFF
 }
 
 .c17 {
-  background: rgb(255, 182, 30);
-  color: #1A1A1A
+  background: #AF8D4E;
+  color: #FFFFFF
 }
 
 .c18 {
-  background: rgb(66, 80, 102);
+  background: #4A5259;
   color: #FFFFFF
 }
 
 .c19 {
-  background: rgb(255, 166, 49);
-  color: #1A1A1A
+  background: #B98C5E;
+  color: #FFFFFF
 }
 
 .c20 {
-  background: rgb(157, 41, 51);
+  background: #7F4147;
   color: #FFFFFF
 }
 
 .c21 {
-  background: rgb(214, 236, 240);
+  background: #D9D4C8;
   color: #1A1A1A
 }
 
 .c22 {
-  background: rgb(226, 156, 69);
-  color: #1A1A1A
+  background: #A77E51;
+  color: #FFFFFF
 }
 
 .c23 {
-  background: rgb(120, 146, 98);
+  background: #7B7A5F;
   color: #FFFFFF
 }
 
 .c24 {
-  background: rgb(255, 70, 31);
+  background: #A2614A;
   color: #FFFFFF
 }
 
 .c25 {
-  background: rgb(217, 182, 17);
-  color: #1A1A1A
+  background: #9D8B50;
+  color: #FFFFFF
 }
 
 .c26 {
-  background: rgb(5, 119, 72);
+  background: #4C5A47;
   color: #FFFFFF
 }
 
 .c27 {
-  background: rgb(202, 105, 36);
+  background: #97602F;
   color: #FFFFFF
 }
 
 .c28 {
-  background: rgb(240, 194, 57);
+  background: #C0A86B;
   color: #1A1A1A
 }
 
 .c29 {
-  background: rgb(132, 90, 51);
+  background: #6E5540;
   color: #FFFFFF
 }
 
 .c30 {
-  background: rgb(255, 241, 67);
+  background: #CFC298;
   color: #1A1A1A
 }
 
 .c31 {
-  background: rgb(66, 102, 102);
+  background: #46504B;
   color: #FFFFFF
 }
 
 .c32 {
-  background: rgb(63, 143, 168);
+  background: #6E7F80;
   color: #FFFFFF
 }
 
 .c33 {
-  background: rgb(255, 182, 30);
-  color: #1A1A1A
+  background: #AF8D4E;
+  color: #FFFFFF
 }
 
 .c34 {
-  background: rgb(66, 80, 102);
+  background: #4A5259;
   color: #FFFFFF
 }
 
 .c35 {
-  background: rgb(255, 166, 49);
-  color: #1A1A1A
+  background: #B98C5E;
+  color: #FFFFFF
 }
 
 .c36 {
-  background: rgb(157, 41, 51);
+  background: #7F4147;
   color: #FFFFFF
 }
 
 .c37 {
-  background: rgb(214, 236, 240);
+  background: #D9D4C8;
   color: #1A1A1A
 }
 
 .c38 {
-  background: rgb(226, 156, 69);
-  color: #1A1A1A
+  background: #A77E51;
+  color: #FFFFFF
 }
 
 .c39 {
-  background: rgb(120, 146, 98);
+  background: #7B7A5F;
   color: #FFFFFF
 }
 
 .c40 {
-  background: rgb(255, 70, 31);
+  background: #A2614A;
   color: #FFFFFF
 }
 
 .c41 {
-  background: rgb(217, 182, 17);
-  color: #1A1A1A
+  background: #9D8B50;
+  color: #FFFFFF
 }
 
 .c42 {
-  background: rgb(5, 119, 72);
+  background: #4C5A47;
   color: #FFFFFF
 }
 
 .c43 {
-  background: rgb(202, 105, 36);
+  background: #97602F;
   color: #FFFFFF
 }
 
 .c44 {
-  background: rgb(240, 194, 57);
+  background: #C0A86B;
   color: #1A1A1A
 }
 
 .c45 {
-  background: rgb(132, 90, 51);
+  background: #6E5540;
   color: #FFFFFF
 }
 
 .c46 {
-  background: rgb(255, 241, 67);
+  background: #CFC298;
   color: #1A1A1A
 }
 
 .c47 {
-  background: rgb(66, 102, 102);
+  background: #46504B;
   color: #FFFFFF
 }
 
 .c48 {
-  background: rgb(63, 143, 168);
+  background: #6E7F80;
   color: #FFFFFF
 }
 
 .c49 {
-  background: rgb(255, 182, 30);
-  color: #1A1A1A
+  background: #AF8D4E;
+  color: #FFFFFF
 }
 
 .c50 {
-  background: rgb(66, 80, 102);
+  background: #4A5259;
   color: #FFFFFF
 }
 
 .c51 {
-  background: rgb(255, 166, 49);
-  color: #1A1A1A
+  background: #B98C5E;
+  color: #FFFFFF
 }
 
 .c52 {
-  background: rgb(157, 41, 51);
+  background: #7F4147;
   color: #FFFFFF
 }
 
 .c53 {
-  background: rgb(214, 236, 240);
+  background: #D9D4C8;
   color: #1A1A1A
 }
 
 .c54 {
-  background: rgb(226, 156, 69);
-  color: #1A1A1A
+  background: #A77E51;
+  color: #FFFFFF
 }
 
 .c55 {
-  background: rgb(120, 146, 98);
+  background: #7B7A5F;
   color: #FFFFFF
 }
 
 .c56 {
-  background: rgb(255, 70, 31);
+  background: #A2614A;
   color: #FFFFFF
 }
 
 .c57 {
-  background: rgb(217, 182, 17);
-  color: #1A1A1A
+  background: #9D8B50;
+  color: #FFFFFF
 }
 
 .c58 {
-  background: rgb(5, 119, 72);
+  background: #4C5A47;
   color: #FFFFFF
 }
 
 .c59 {
-  background: rgb(202, 105, 36);
+  background: #97602F;
   color: #FFFFFF
 }
 
 .c60 {
-  background: rgb(240, 194, 57);
+  background: #C0A86B;
   color: #1A1A1A
 }
 
 .c61 {
-  background: rgb(132, 90, 51);
+  background: #6E5540;
   color: #FFFFFF
 }
 
 .c62 {
-  background: rgb(255, 241, 67);
+  background: #CFC298;
   color: #1A1A1A
 }
 
 .c63 {
-  background: rgb(66, 102, 102);
+  background: #46504B;
   color: #FFFFFF
 }
 
 .c64 {
-  background: rgb(63, 143, 168);
+  background: #6E7F80;
   color: #FFFFFF
 }
 
