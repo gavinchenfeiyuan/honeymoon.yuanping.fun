@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蜜月行程表</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #e2e5ea;
+      --text: #24292f;
+      --text-dim: #6b7280;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-soft: #eff4ff;
+      --err: #dc2626;
+      --ok: #16a34a;
+      --warn: #b45309;
+      --stripe: #fafbfc;
+      --hover: #f0f4ff;
+      --mono: "Cascadia Code", "Consolas", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ===== 顶部栏 ===== */
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      z-index: 10;
+    }
+
+    header .logo {
+      font-weight: 700;
+      font-size: 15px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    header .logo .dot {
+      color: var(--accent);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    #amapKey {
+      width: 220px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      background: #fafbfc;
+      color: var(--text);
+      outline: none;
+      transition: border .15s, box-shadow .15s;
+    }
+
+    #amapKey:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+      background: #fff;
+    }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      border-color: #c9cdd4;
+      background: #fafbfc;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
+
+    /* ===== 状态栏 ===== */
+    #statusBar {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      min-height: 30px;
+    }
+
+    #statusBar .err {
+      color: var(--err);
+    }
+
+    #statusBar .ok {
+      color: var(--ok);
+    }
+
+    #statusBar .warn {
+      color: var(--warn);
+    }
+
+    /* ===== 主区 ===== */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #dropHint {
+      position: absolute;
+      inset: 8px;
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      background: rgba(37, 99, 235, .06);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent);
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    body.dragging #dropHint {
+      display: flex;
+    }
+
+    #content {
+      flex: 1;
+      overflow: auto;
+      padding: 16px 20px 24px;
+    }
+
+    /* ===== 表格卡片 ===== */
+    .table-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    }
+
+    .card-head {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-head .count {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-dim);
+      background: #f0f1f3;
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+
+    .card-head .actions {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-xs {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 45vh;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #f6f8fa;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-align: left;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      z-index: 5;
+    }
+
+    thead th.idx,
+    td.idx {
+      width: 44px;
+      text-align: right;
+      color: #b3b8c0;
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #fafbfc;
+    }
+
+    tbody td {
+      padding: 7px 14px;
+      border-bottom: 1px solid #eef0f3;
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) {
+      background: var(--stripe);
+    }
+
+    tbody tr:hover {
+      background: var(--hover);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.empty {
+      color: #d0d4da;
+    }
+
+    td .mono {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--num);
+    }
+
+    /* 操作列 & 删除按钮 */
+    thead th.op {
+      width: 44px;
+    }
+
+    td.op {
+      width: 44px;
+      text-align: center;
+    }
+
+    /* 只读列（location） */
+    thead th.ro,
+    td.ro {
+      background: #f8f9fb;
+      color: var(--text-dim);
+    }
+    td.ro { cursor: default; }
+
+    .del-btn {
+      border: none;
+      background: transparent;
+      color: #c9cdd4;
+      font-size: 13px;
+      line-height: 1;
+      padding: 3px 6px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .del-btn:hover {
+      color: #fff;
+      background: var(--err);
+    }
+
+    /* 单元格编辑 */
+    .cell-input {
+      width: 100%;
+      min-width: 60px;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, .15);
+    }
+
+    /* ===== 行拖拽排序 ===== */
+    tbody tr[draggable="true"] {
+      cursor: grab;
+    }
+
+    tbody tr[draggable="true"]:active {
+      cursor: grabbing;
+    }
+
+    tbody tr.dragging {
+      opacity: .35;
+    }
+
+    tbody tr.drag-before td {
+      border-top: 2px solid var(--accent);
+    }
+
+    tbody tr.drag-after td {
+      border-bottom: 2px solid var(--accent);
+    }
+
+    /* ===== 空状态 ===== */
+    #emptyState {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      gap: 10px;
+    }
+
+    #emptyState .icon {
+      font-size: 42px;
+      opacity: .5;
+    }
+
+    #emptyState .tip {
+      font-size: 13px;
+      line-height: 1.9;
+      text-align: center;
+    }
+
+    #emptyState .tip code {
+      background: #f0f1f3;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    #emptyState .tip .btn {
+      margin-top: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ===== 帮助 ===== */
+    #help {
+      border-top: 1px solid var(--border);
+      background: var(--panel);
+      font-size: 12px;
+      color: var(--text-dim);
+      padding: 0;
+    }
+
+    #help summary {
+      cursor: pointer;
+      padding: 6px 16px;
+      user-select: none;
+      font-weight: 500;
+    }
+
+    #help .help-body {
+      padding: 4px 16px 12px;
+      line-height: 1.9;
+    }
+
+    #help code {
+      background: #f0f1f3;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 5px;
+      font-family: var(--mono);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">🥤 蜜月行程表 <span class="dot">path.json</span></div>
+    <input id="amapKey" type="text" spellcheck="false" placeholder="高德 Key（选填，保存时自动查新地点坐标）">
+  </header>
+
+  <div id="statusBar">
+    <span id="statusText">正在加载 path.json …</span>
+  </div>
+
+  <main>
+    <div id="dropHint">松开鼠标打开 JSON 文件</div>
+    <div id="content">
+      <div id="emptyState">
+        <div class="icon">🗺️</div>
+        <div class="tip">
+          本工具展示 <code>path.json</code> 中的 <code>plan</code> 和 <code>fact</code> 两个表格。<br>
+          当前未加载成功 —— 请用本地 HTTP 服务器运行本页面：<br>
+          <code>python -m http.server 8080</code> 然后访问 <code>http://localhost:8080/plan_tool.html</code><br>
+          或点击下方按钮手动选择文件：<br>
+          <button class="btn" id="emptyPick">📂 选择 path.json</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <details id="help">
+    <summary>💡 使用说明</summary>
+    <div class="help-body">
+      自动加载同目录 <code>path.json</code>，将 <code>plan</code>（行程计划）和 <code>fact</code>（实际行程）渲染为两张表格。<br>
+      行可拖拽排序；每行 ✕ 删除；每张表可「新建行」；「保存」执行三步：<br>
+      ① 校验每行 <code>name</code>/<code>date</code> 是否存在（缺失则提示并中止）<br>
+      ② 检查 <code>name</code> 是否在 <code>place.json</code> 中存在，不存在的自动创建（填高德 Key 自动查经纬度，查不到的留空待手动补）<br>
+      ③ 按当前顺序写回 <code>path.json</code>，相邻两行 date 不同且中间无 overnight 时自动插入 <code>overnight</code><br>
+      保存需 Chrome/Edge：每次保存都会弹出对话框，由你自行选择保存位置（覆盖 <code>path.json</code> / <code>place.json</code>
+      即可）；其他浏览器降级为下载。推荐运行方式：在该目录执行 <code>python -m http.server 8080</code>，访问
+      <code>http://localhost:8080/plan_tool.html</code>。
+    </div>
+  </details>
+
+  <script>
+    "use strict";
+
+    /* ============ 元素引用 ============ */
+    const $ = id => document.getElementById(id);
+    const statusText = $("statusText"), content = $("content");
+    const emptyState = $("emptyState");
+    $("emptyPick").addEventListener("click", pickFile);
+
+    /* ============ 状态 ============ */
+    function setStatus(msg, cls) {
+      statusText.textContent = msg;
+      statusText.className = cls || "";
+    }
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    /* ============ 加载 path.json / place.json ============ */
+    let originalJson = null;
+    let cachedPlace = [];     // place.json 的 place 数组
+    let placeMap = new Map(); // name -> place 条目（供 location 列查询）
+    let amapKey = localStorage.getItem("amap_key") || "";
+    const amapKeyInput = $("amapKey");
+    amapKeyInput.value = amapKey;
+    amapKeyInput.addEventListener("change", () => {
+      amapKey = amapKeyInput.value.trim();
+      localStorage.setItem("amap_key", amapKey);
+    });
+
+    async function loadPath() {
+      setStatus("正在加载 path.json / place.json …");
+      try {
+        const res = await fetch("path.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const text = await res.text();
+        const data = JSON.parse(text);
+        originalJson = data;
+        // 顺带加载 place.json（供 location 列显示与保存检查）
+        try {
+          const pres = await fetch("place.json", { cache: "no-store" });
+          if (pres.ok) {
+            const pdata = JSON.parse(await pres.text());
+            cachedPlace = Array.isArray(pdata.place) ? pdata.place : [];
+            placeMap = new Map(cachedPlace.map(p => [p.name, p]));
+          }
+        } catch (_) { /* place.json 加载失败不阻塞表格展示 */ }
+        render(data, "path.json");
+        setStatus("✅ path.json 已加载" + (cachedPlace.length ? "（place.json " + cachedPlace.length + " 个地点）" : ""), "ok");
+      } catch (e) {
+        setStatus("❌ 加载失败（" + e.message + "）—— 请用本地服务器运行或点击「选择文件」", "err");
+        emptyState.classList.remove("hidden");
+      }
+    }
+
+    /* ============ 渲染表格 ============ */
+    const TABLE_TITLES = { plan: "🗺️ plan · 行程计划", fact: "✅ fact · 实际行程" };
+
+    function render(data, name) {
+      emptyState.classList.add("hidden");
+      content.innerHTML = "";
+
+      const keys = Object.keys(data);
+      const tables = keys.filter(k => Array.isArray(data[k]) && TABLE_TITLES[k]);
+      if (tables.length === 0) {
+        content.innerHTML =
+          '<div style="padding:40px;text-align:center;color:var(--text-dim);font-size:13px;">' +
+          '未找到 plan / fact 数组（顶层键：' + esc(keys.join(", ") || "无") + "）</div>";
+        return;
+      }
+      for (const k of tables) {
+        content.appendChild(buildTableCard(k, data[k]));
+      }
+    }
+
+    function buildTableCard(key, rows) {
+      // 过滤 overnight 占位行
+      rows = rows.filter(r => !(r && r.name === "overnight"));
+
+      // 字段并集（按出现顺序）
+      const fields = [];
+      const seen = new Set();
+      rows.forEach(r => { if (r && typeof r === "object") Object.keys(r).forEach(f => { if (!seen.has(f)) { seen.add(f); fields.push(f); } }); });
+
+      const card = document.createElement("div");
+      card.className = "table-card";
+      card.dataset.key = key;
+
+      const head = document.createElement("div");
+      head.className = "card-head";
+      head.innerHTML = esc(TABLE_TITLES[key]) + ' <span class="count">' + rows.length + " 行</span>";
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const addBtn = document.createElement("button");
+      addBtn.className = "btn btn-xs";
+      addBtn.textContent = "＋ 新建行";
+      addBtn.addEventListener("click", () => addRow(tbody, fields));
+      const saveBtn = document.createElement("button");
+      saveBtn.className = "btn btn-xs btn-primary";
+      saveBtn.textContent = "💾 保存";
+      saveBtn.addEventListener("click", saveAll);
+      actions.appendChild(addBtn);
+      actions.appendChild(saveBtn);
+      head.appendChild(actions);
+      card.appendChild(head);
+
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap";
+
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const trH = document.createElement("tr");
+      const thIdx = document.createElement("th");
+      thIdx.className = "idx";
+      thIdx.textContent = "#";
+      trH.appendChild(thIdx);
+      const thLoc = document.createElement("th");
+      thLoc.className = "ro";
+      thLoc.textContent = "location";
+      trH.appendChild(thLoc);
+      for (const f of fields) {
+        const th = document.createElement("th");
+        th.textContent = f;
+        trH.appendChild(th);
+      }
+      const thOp = document.createElement("th");
+      thOp.className = "op";
+      trH.appendChild(thOp);
+      thead.appendChild(trH);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      rows.forEach((r, i) => {
+        const tr = document.createElement("tr");
+        tr.draggable = true;
+        const tdIdx = document.createElement("td");
+        tdIdx.className = "idx";
+        tdIdx.textContent = i + 1;
+        tr.appendChild(tdIdx);
+        // location 只读列（从 place.json 查询，不可编辑）
+        const tdLoc = document.createElement("td");
+        tdLoc.className = "ro";
+        const loc = r && r.name ? (placeMap.get(r.name) || {}).location : "";
+        tdLoc.textContent = loc || "";
+        if (!loc) tdLoc.classList.add("empty");
+        tr.appendChild(tdLoc);
+        for (const f of fields) {
+          const td = document.createElement("td");
+          const v = r ? r[f] : undefined;
+          if (v === undefined || v === null || v === "") {
+            td.className = "empty";
+            td.textContent = "";
+          } else if (typeof v === "number") {
+            td.innerHTML = '<span class="mono">' + esc(v) + "</span>";
+          } else {
+            td.textContent = String(v);
+          }
+          td.dataset.field = f;
+          makeEditable(td);
+          tr.appendChild(td);
+        }
+        const tdOp = document.createElement("td");
+        tdOp.className = "op";
+        tdOp.appendChild(makeDelBtn(tr));
+        tr.appendChild(tdOp);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      bindRowDrag(tbody);
+      wrap.appendChild(table);
+      card.appendChild(wrap);
+      return card;
+    }
+
+    /* ============ 单元格编辑 ============ */
+    function makeEditable(td) {
+      td.style.cursor = "text";
+      td.addEventListener("click", () => {
+        if (td.dataset.editing) return;
+        const oldVal = td.textContent;
+        td.dataset.editing = "1";
+        td.textContent = "";
+        const input = document.createElement("input");
+        input.className = "cell-input";
+        input.value = oldVal;
+        input.spellcheck = false;
+        td.appendChild(input);
+        input.focus();
+        input.select();
+
+        let done = false;
+        const commit = () => {
+          if (done) return;
+          done = true;
+          const v = input.value;
+          td.removeChild(input);
+          delete td.dataset.editing;
+          td.textContent = v;
+          td.classList.toggle("empty", v === "");
+          // name 修改后联动刷新本行 location 只读列
+          if (td.dataset.field === "name") updateRowLocation(td.closest("tr"));
+        };
+        input.addEventListener("blur", commit);
+        input.addEventListener("keydown", e => {
+          if (e.key === "Enter") { e.preventDefault(); commit(); input.blur(); }
+          else if (e.key === "Escape") {
+            done = true;
+            td.removeChild(input);
+            delete td.dataset.editing;
+            td.textContent = oldVal;
+            td.classList.toggle("empty", oldVal === "");
+          }
+        });
+      });
+    }
+
+    /* name → place.location 只读列联动刷新 */
+    function updateRowLocation(tr) {
+      const tdLoc = tr.querySelector("td.ro");
+      if (!tdLoc) return;
+      const name = (tr.querySelector('td[data-field="name"]') || {}).textContent || "";
+      const loc = name ? (placeMap.get(name) || {}).location : "";
+      tdLoc.textContent = loc || "";
+      tdLoc.classList.toggle("empty", !loc);
+    }
+
+    /* ============ 行删除 / 新建行 ============ */
+    function makeDelBtn(tr) {
+      const btn = document.createElement("button");
+      btn.className = "del-btn";
+      btn.textContent = "✕";
+      btn.title = "删除此行";
+      btn.addEventListener("click", () => {
+        tr.remove();
+        renumber(tr.parentNode);
+        updateCardCount(tr.closest(".table-card"));
+      });
+      return btn;
+    }
+
+    function addRow(tbody, fields) {
+      const tr = document.createElement("tr");
+      tr.draggable = true;
+      const tdIdx = document.createElement("td");
+      tdIdx.className = "idx";
+      tdIdx.textContent = tbody.children.length + 1;
+      tr.appendChild(tdIdx);
+      const tdLoc = document.createElement("td");
+      tdLoc.className = "ro empty";
+      tr.appendChild(tdLoc);
+      for (const f of fields) {
+        const td = document.createElement("td");
+        td.className = "empty";
+        td.dataset.field = f;
+        makeEditable(td);
+        tr.appendChild(td);
+      }
+      const tdOp = document.createElement("td");
+      tdOp.className = "op";
+      tdOp.appendChild(makeDelBtn(tr));
+      tr.appendChild(tdOp);
+      tbody.appendChild(tr);
+      updateCardCount(tr.closest(".table-card"));
+      tr.scrollIntoView({ block: "nearest" });
+    }
+
+    function updateCardCount(card) {
+      if (!card) return;
+      const n = card.querySelectorAll("tbody tr").length;
+      const count = card.querySelector(".count");
+      if (count) count.textContent = n + " 行";
+    }
+
+    /* ============ 保存（写回 path.json） ============ */
+    function readTable(key) {
+      const card = content.querySelector('.table-card[data-key="' + key + '"]');
+      if (!card) return [];
+      const tbody = card.querySelector("tbody");
+      const fields = Array.from(card.querySelectorAll("thead th:not(.idx):not(.op):not(.ro)")).map(th => th.textContent);
+      return Array.from(tbody.children).map(tr => {
+        const tds = tr.querySelectorAll("td:not(.idx):not(.op):not(.ro)");
+        const obj = {};
+        tds.forEach((td, i) => {
+          const v = td.textContent;
+          if (v !== "") obj[fields[i]] = v;
+        });
+        return obj;
+      });
+    }
+
+    /* ============ 保存 ============ */
+    /* 1) 校验：每行 name / date 必须存在 */
+    function validate() {
+      for (const k of ["plan", "fact"]) {
+        const rows = readTable(k);
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r.name || !r.name.trim()) return { msg: (k === "plan" ? "🗺️ plan" : "✅ fact") + "表 第 " + (i + 1) + " 行缺少 name" };
+          if (!r.date || !r.date.trim()) return { msg: (k === "plan" ? "🗺️ plan" : "✅ fact") + "表 第 " + (i + 1) + " 行缺少 date" };
+        }
+      }
+      return null;
+    }
+
+    /* 2) place.json 同步：不存在的 name 自动创建（高德查坐标，查不到则留空待手动补） */
+    function geocodeByName(name) {
+      return new Promise(resolve => {
+        const cb = "amap_cb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
+        const script = document.createElement("script");
+        script.src = "https://restapi.amap.com/v3/geocode/geo?address=" + encodeURIComponent(name) +
+          "&key=" + encodeURIComponent(amapKey) + "&callback=" + cb;
+        window[cb] = data => { delete window[cb]; script.remove(); resolve(data); };
+        script.onerror = () => { delete window[cb]; script.remove(); resolve(null); };
+        document.head.appendChild(script);
+      });
+    }
+
+    /* 2) place.json 同步：缺 lng/lat/location 的条目（含新增与已存在的）统一补全 */
+    async function fillCoord(base) {
+      const entry = Object.assign({ lng: 0, lat: 0, location: "" }, base);
+      if (amapKey) {
+        try {
+          const g = await geocodeByName(base.name);
+          if (g && g.status === "1" && g.geocodes && g.geocodes.length) {
+            const loc = g.geocodes[0].location.split(",");
+            entry.lng = Number(loc[0]);
+            entry.lat = Number(loc[1]);
+            entry.location = g.geocodes[0].formatted_address || "";
+            return { entry, noCoord: false };
+          }
+        } catch (_) { /* 查不到或失败走默认值 */ }
+      }
+      return { entry, noCoord: true };
+    }
+
+    async function syncPlace() {
+      const names = [];
+      ["plan", "fact"].forEach(k =>
+        readTable(k).forEach(r => {
+          if (r.name && !names.includes(r.name)) names.push(r.name);
+        }));
+      const existing = new Set(cachedPlace.map(p => p && p.name));
+      const missing = names.filter(n => !existing.has(n));
+
+      // 已存在但缺字段的条目
+      const needFix = cachedPlace.filter(p => p && (p.lng === undefined || p.lat === undefined || p.location === undefined || p.location === ""));
+      const fixNames = new Set(needFix.map(p => p.name));
+
+      const places = cachedPlace.map(p => Object.assign({}, p));
+      const noCoord = [];
+      let fixed = 0;
+      if (needFix.length) setStatus("正在补全 " + needFix.length + " 个已有地点的坐标（高德）…");
+      for (const p of places) {
+        if (fixNames.has(p.name)) {
+          const { entry, noCoord: nc } = await fillCoord(p);
+          Object.assign(p, entry);
+          if (nc) noCoord.push(p.name);
+          fixed++;
+        }
+      }
+      if (missing.length) setStatus("正在查询 " + missing.length + " 个新地点的坐标（高德）…");
+      for (const n of missing) {
+        const { entry, noCoord: nc } = await fillCoord({ name: n });
+        if (nc) noCoord.push(n);
+        places.push(entry);
+      }
+      return { places, added: missing.length, fixed, noCoord };
+    }
+
+    /* 3) 检查 A：每行 name 在 place.json 中对应的 location 必须非空 */
+    function checkLocation(places) {
+      const map = new Map(places.map(p => [p.name, p]));
+      const bad = [];
+      for (const k of ["plan", "fact"]) {
+        readTable(k).forEach((r, i) => {
+          if (!r.name) return;
+          const p = map.get(r.name);
+          if (!p || !p.location || !p.location.trim()) {
+            bad.push((k === "plan" ? "🗺️ plan" : "✅ fact") + " 第 " + (i + 1) + " 行（" + r.name + "）→ place.location 为空");
+          }
+        });
+      }
+      return bad;
+    }
+
+    /* 3) 检查 B：相邻两行 name 对应 location 不同城市、且下行 traffic 为空 → 报错
+       （location 格式为"市-区"，按第一段（城市）比较，同城不同区不算跨） */
+    function cityOf(loc) {
+      return (loc || "").split("-")[0].trim();
+    }
+
+    function checkTraffic(places) {
+      const map = new Map(places.map(p => [p.name, p]));
+      const bad = [];
+      for (const k of ["plan", "fact"]) {
+        const rows = readTable(k);
+        for (let i = 0; i < rows.length - 1; i++) {
+          const cur = rows[i], next = rows[i + 1];
+          if (!cur.name || !next.name) continue;
+          const l1 = map.get(cur.name), l2 = map.get(next.name);
+          if (!l1 || !l2) continue;   // location 缺失由检查 A 处理
+          if (cityOf(l1.location) !== cityOf(l2.location) && (!next.traffic || !next.traffic.trim())) {
+            bad.push((k === "plan" ? "🗺️ plan" : "✅ fact") + " 第 " + (i + 1) + "→" + (i + 2) + " 行（" + cur.name + " → " + next.name + "）跨城市（" + cityOf(l1.location) + " ≠ " + cityOf(l2.location) + "）但下行 traffic 为空");
+          }
+        }
+      }
+      return bad;
+    }
+
+    /* 4) 相邻两行 date 不同且中间无 overnight → 插入 overnight */
+    function withOvernight(rows) {
+      const out = [];
+      for (const r of rows) {
+        const prev = out[out.length - 1];
+        if (prev && prev.name !== "overnight" &&
+          prev.date !== undefined && r.date !== undefined &&
+          prev.date !== r.date) {
+          out.push({ name: "overnight" });
+        }
+        out.push(r);
+      }
+      return out;
+    }
+
+    function buildPathData() {
+      const data = Object.assign({}, originalJson || {});
+      data.plan = withOvernight(readTable("plan"));
+      data.fact = readTable("fact");
+      return data;
+    }
+
+    /* 写文件：每次弹保存对话框由用户自行选择保存位置；不支持时降级下载 */
+    async function writeJsonFile(suggestedName, obj) {
+      const json = JSON.stringify(obj, null, 4);
+      if (window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName,
+          types: [{ description: "JSON 文件", accept: { "application/json": [".json"] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        return handle.name;
+      }
+      downloadBlob(json, suggestedName);
+      return suggestedName + "（已下载）";
+    }
+
+    async function saveAll() {
+      // 1) 校验
+      const err = validate();
+      if (err) { alert("⚠️ " + err.msg); setStatus(err.msg, "err"); return; }
+
+      // 2) 同步 place.json
+      const { places, added, fixed, noCoord } = await syncPlace();
+
+      // 3) 检查：location 为空、或跨 location 且下行 traffic 为空 → 报错中止（提示最后一项）
+      const badLoc = checkLocation(places);
+      const badTraffic = checkTraffic(places);
+      const allBad = badLoc.concat(badTraffic);
+      if (allBad.length) {
+        const last = allBad[allBad.length - 1];
+        alert("⚠️ 保存中止（共 " + allBad.length + " 处问题）：\n\n" + last + "\n\n请修正后再保存。");
+        setStatus("保存中止：" + last, "err");
+        return;
+      }
+
+      // 4) 写回 place.json
+      if (added || fixed) {
+        const placeObj = { place: places };
+        try {
+          const name = await writeJsonFile("place.json", placeObj);
+          let msg = "✅ place.json 已更新（新增 " + added + "、补全 " + fixed + " 个地点）→ " + name;
+          if (noCoord.length) msg += "；⚠️ " + noCoord.length + " 个地点坐标未能自动查询（" + noCoord.join("、") + "），已置 0，请手动补 lng/lat/location";
+          setStatus(msg, noCoord.length ? "warn" : "ok");
+        } catch (e) {
+          if (e.name !== "AbortError") { setStatus("place.json 保存失败：" + e.message, "err"); }
+          return;
+        }
+      } else {
+        setStatus("✅ 所有地点均存在且字段齐全，place.json 无需更新", "ok");
+      }
+
+      // 3) 保存 path.json（plan 自动补 overnight）
+      try {
+        const name = await writeJsonFile("path.json", buildPathData());
+        setStatus("✅ path.json 已保存（自动补齐 overnight）→ " + name, "ok");
+      } catch (e) {
+        if (e.name !== "AbortError") setStatus("path.json 保存失败：" + e.message, "err");
+      }
+    }
+
+    function downloadBlob(text, filename) {
+      const blob = new Blob([text], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    /* ============ 行拖拽排序 ============ */
+    let dragSrcIdx = null;
+
+    function bindRowDrag(tbody) {
+      tbody.addEventListener("dragstart", e => {
+        const tr = e.target.closest("tr");
+        if (!tr) return;
+        dragSrcIdx = Array.prototype.indexOf.call(tbody.children, tr);
+        tr.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(dragSrcIdx));
+      });
+      tbody.addEventListener("dragover", e => {
+        const tr = e.target.closest("tr");
+        if (!tr) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        const rect = tr.getBoundingClientRect();
+        tr.classList.toggle("drag-after", e.clientY > rect.top + rect.height / 2);
+        tr.classList.toggle("drag-before", e.clientY <= rect.top + rect.height / 2);
+      });
+      tbody.addEventListener("dragleave", e => {
+        const tr = e.target.closest("tr");
+        if (tr) tr.classList.remove("drag-before", "drag-after");
+      });
+      tbody.addEventListener("drop", e => {
+        e.preventDefault();
+        const target = e.target.closest("tr");
+        if (!target || dragSrcIdx === null) return;
+        target.classList.remove("drag-before", "drag-after");
+        const src = tbody.children[dragSrcIdx];
+        const rect = target.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        if (after && target.nextSibling) {
+          tbody.insertBefore(src, target.nextSibling);
+        } else if (after) {
+          tbody.appendChild(src);
+        } else {
+          tbody.insertBefore(src, target);
+        }
+        renumber(tbody);
+        dragSrcIdx = null;
+      });
+      tbody.addEventListener("dragend", () => {
+        dragSrcIdx = null;
+        tbody.querySelectorAll(".dragging, .drag-before, .drag-after")
+          .forEach(el => el.classList.remove("dragging", "drag-before", "drag-after"));
+      });
+    }
+
+    function renumber(tbody) {
+      Array.prototype.forEach.call(tbody.children, (tr, i) => {
+        const idx = tr.querySelector(".idx");
+        if (idx) idx.textContent = i + 1;
+      });
+    }
+
+    /* ============ 选择文件 / 拖拽（兜底） ============ */
+    function pickFile() {
+      if (window.showOpenFilePicker) {
+        window.showOpenFilePicker({ types: [{ description: "JSON 文件", accept: { "application/json": [".json"] } }] })
+          .then(handles => handles[0].getFile())
+          .then(readAsText)
+          .catch(err => { if (err && err.name === "AbortError") return; fallbackInput(); });
+      } else {
+        fallbackInput();
+      }
+    }
+    function fallbackInput() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json,application/json";
+      input.onchange = () => { const f = input.files[0]; if (f) readAsText(f); };
+      input.click();
+    }
+    function readAsText(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          render(data, file.name);
+          setStatus("✅ 已打开 " + file.name, "ok");
+        } catch (e) {
+          setStatus("JSON 解析失败：" + e.message, "err");
+        }
+      };
+      reader.onerror = () => setStatus("读取文件失败", "err");
+      reader.readAsText(file);
+    }
+
+    /* ============ 拖拽 ============ */
+    document.addEventListener("dragover", e => { e.preventDefault(); document.body.classList.add("dragging"); });
+    document.addEventListener("dragleave", e => { if (!e.relatedTarget) document.body.classList.remove("dragging"); });
+    document.addEventListener("drop", e => {
+      e.preventDefault();
+      document.body.classList.remove("dragging");
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) readAsText(f);
+    });
+
+    /* ============ 初始化 ============ */
+    loadPath();
+  </script>
+</body>
+
+</html>
