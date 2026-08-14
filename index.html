@@ -35,6 +35,9 @@
       var hint = document.getElementById("map-hint");
       if (hint) hint.style.display = "none";
 
+      // 容器尺寸可能初始化时尚未稳定，强制重算一次瓦片尺寸
+      setTimeout(function () { try { map.resize(); } catch (e) { } }, 300);
+
       fetch("place.json")
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -61,6 +64,8 @@
             });
           }
           map.setBounds(bounds, false, [50, 50, 50, 50]);
+          // 框完范围后再 resize，确保瓦片按真实尺寸铺满
+          setTimeout(function () { try { map.resize(); } catch (e) { } }, 100);
         })
         .catch(function (e) { console.error("读取 place.json 失败", e); });
     }
