@@ -13,7 +13,7 @@
   <!-- 临时版本号：辨认变更用，确认后删掉这一行即可 -->
   <div id="ver"
     style="position:fixed;top:6px;right:8px;z-index:99999;font:12px/1.4 monospace;color:#222;background:rgba(255,255,255,.88);border:1px solid #999;border-radius:4px;padding:3px 6px;pointer-events:none;">
-    v0.20</div>
+    v0.21</div>
 
   <!-- 第一块：竖向 4:3 地图画框（行程点位 + 路线） -->
   <section class="block block-first" id="map-block">
@@ -127,11 +127,28 @@
             }
             console.error("缺失点位汇总：", missing);
           }
-          // 路线：按 plan 顺序连接标记
+          // 路线：按 plan 顺序，用平滑贝塞尔曲线连接标记
           if (markers.length > 1) {
-            var path = markers.map(function (m) { return m.getPosition(); });
-            new AMap.Polyline({
-              path: path,
+            var pts = markers.map(function (m) {
+              var p = m.getPosition();
+              return [p.getLng(), p.getLat()];
+            });
+            // Catmull-Rom 转三次贝塞尔：曲线平滑穿过每个点位
+            var curvePath = [];
+            for (var i = 0; i < pts.length - 1; i++) {
+              var p0 = pts[Math.max(0, i - 1)];
+              var p1 = pts[i];
+              var p2 = pts[i + 1];
+              var p3 = pts[Math.min(pts.length - 1, i + 2)];
+              curvePath.push([
+                p1,
+                [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6],
+                [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6],
+                p2
+              ]);
+            }
+            new AMap.BezierCurve({
+              path: curvePath,
               strokeColor: "#B23A2E",
               strokeWeight: 3,
               strokeOpacity: 0.85,
