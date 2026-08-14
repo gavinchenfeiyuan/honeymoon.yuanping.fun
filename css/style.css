@@ -1,0 +1,358 @@
+/* 无边框矩形块：一块块拼接，移动优先
+   配色：64 种大兴安岭秋景（落叶松金 / 白桦橙 / 枫叶赤 / 樟松绿）
+   每个块由 JS 随机挂一个 .c1~.c64 色类 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans SC", sans-serif;
+  background: #000;
+}
+
+.block {
+  width: 100%;
+  min-height: 38vh;
+  /* 每块占近半屏，拼接感强 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(32px, 12vw, 64px);
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 0;
+  /* 无边框、无圆角 */
+  background: #E0A93B;
+  /* 默认底色，JS 加载前不闪黑 */
+}
+
+/* 首块满屏 */
+.block-first {
+  min-height: 100vh;
+}
+
+/* ===== 64 种秋景配色 =====
+   暖金(1-16)深字 / 橙(17-32)白字 / 赤红(33-48)白字 / 松绿(49-64)白字 */
+.c1 {
+  background: #E0A93B;
+  color: #1A1A1A
+}
+
+.c2 {
+  background: #D99A2B;
+  color: #1A1A1A
+}
+
+.c3 {
+  background: #E8B84B;
+  color: #1A1A1A
+}
+
+.c4 {
+  background: #C98A2B;
+  color: #1A1A1A
+}
+
+.c5 {
+  background: #F0C04A;
+  color: #1A1A1A
+}
+
+.c6 {
+  background: #D4A017;
+  color: #1A1A1A
+}
+
+.c7 {
+  background: #E6B422;
+  color: #1A1A1A
+}
+
+.c8 {
+  background: #C8992E;
+  color: #1A1A1A
+}
+
+.c9 {
+  background: #EBB84D;
+  color: #1A1A1A
+}
+
+.c10 {
+  background: #D9A441;
+  color: #1A1A1A
+}
+
+.c11 {
+  background: #E3A82E;
+  color: #1A1A1A
+}
+
+.c12 {
+  background: #F2C75C;
+  color: #1A1A1A
+}
+
+.c13 {
+  background: #CFA83C;
+  color: #1A1A1A
+}
+
+.c14 {
+  background: #E0A030;
+  color: #1A1A1A
+}
+
+.c15 {
+  background: #D8A94A;
+  color: #1A1A1A
+}
+
+.c16 {
+  background: #EDBE55;
+  color: #1A1A1A
+}
+
+.c17 {
+  background: #D9722E;
+  color: #FFFFFF
+}
+
+.c18 {
+  background: #C8612A;
+  color: #FFFFFF
+}
+
+.c19 {
+  background: #E07B33;
+  color: #FFFFFF
+}
+
+.c20 {
+  background: #B9531F;
+  color: #FFFFFF
+}
+
+.c21 {
+  background: #DA7A3A;
+  color: #FFFFFF
+}
+
+.c22 {
+  background: #CF6A2C;
+  color: #FFFFFF
+}
+
+.c23 {
+  background: #E3894A;
+  color: #FFFFFF
+}
+
+.c24 {
+  background: #C25E22;
+  color: #FFFFFF
+}
+
+.c25 {
+  background: #D56B2E;
+  color: #FFFFFF
+}
+
+.c26 {
+  background: #BE5A1C;
+  color: #FFFFFF
+}
+
+.c27 {
+  background: #E08A45;
+  color: #FFFFFF
+}
+
+.c28 {
+  background: #CB6528;
+  color: #FFFFFF
+}
+
+.c29 {
+  background: #D97C38;
+  color: #FFFFFF
+}
+
+.c30 {
+  background: #B8501A;
+  color: #FFFFFF
+}
+
+.c31 {
+  background: #DD8740;
+  color: #FFFFFF
+}
+
+.c32 {
+  background: #C9682E;
+  color: #FFFFFF
+}
+
+.c33 {
+  background: #B23A2E;
+  color: #FFFFFF
+}
+
+.c34 {
+  background: #A8322A;
+  color: #FFFFFF
+}
+
+.c35 {
+  background: #C0432F;
+  color: #FFFFFF
+}
+
+.c36 {
+  background: #9E2E24;
+  color: #FFFFFF
+}
+
+.c37 {
+  background: #B8402E;
+  color: #FFFFFF
+}
+
+.c38 {
+  background: #AC3528;
+  color: #FFFFFF
+}
+
+.c39 {
+  background: #C84A33;
+  color: #FFFFFF
+}
+
+.c40 {
+  background: #A02D22;
+  color: #FFFFFF
+}
+
+.c41 {
+  background: #BB3E2C;
+  color: #FFFFFF
+}
+
+.c42 {
+  background: #9C342A;
+  color: #FFFFFF
+}
+
+.c43 {
+  background: #C23F30;
+  color: #FFFFFF
+}
+
+.c44 {
+  background: #A6342A;
+  color: #FFFFFF
+}
+
+.c45 {
+  background: #B53A2E;
+  color: #FFFFFF
+}
+
+.c46 {
+  background: #A12C20;
+  color: #FFFFFF
+}
+
+.c47 {
+  background: #C04634;
+  color: #FFFFFF
+}
+
+.c48 {
+  background: #AE3829;
+  color: #FFFFFF
+}
+
+.c49 {
+  background: #2F4F3A;
+  color: #FFFFFF
+}
+
+.c50 {
+  background: #36583F;
+  color: #FFFFFF
+}
+
+.c51 {
+  background: #294A36;
+  color: #FFFFFF
+}
+
+.c52 {
+  background: #3C6044;
+  color: #FFFFFF
+}
+
+.c53 {
+  background: #2B4A38;
+  color: #FFFFFF
+}
+
+.c54 {
+  background: #32533C;
+  color: #FFFFFF
+}
+
+.c55 {
+  background: #284637;
+  color: #FFFFFF
+}
+
+.c56 {
+  background: #3A5A41;
+  color: #FFFFFF
+}
+
+.c57 {
+  background: #2D4D39;
+  color: #FFFFFF
+}
+
+.c58 {
+  background: #355640;
+  color: #FFFFFF
+}
+
+.c59 {
+  background: #264534;
+  color: #FFFFFF
+}
+
+.c60 {
+  background: #3E6246;
+  color: #FFFFFF
+}
+
+.c61 {
+  background: #2F4F3A;
+  color: #FFFFFF
+}
+
+.c62 {
+  background: #345840;
+  color: #FFFFFF
+}
+
+.c63 {
+  background: #2A4735;
+  color: #FFFFFF
+}
+
+.c64 {
+  background: #3C5C42;
+  color: #FFFFFF
+}
+
+/* 加块：复制 <section class="block">文字</section>，JS 会自动随机上色 */

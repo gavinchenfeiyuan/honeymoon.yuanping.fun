@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>矩形块</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <section class="block block-first">AAAA</section>
+  <section class="block">BBBB</section>
+  <section class="block">CCCC</section>
+  <section class="block">DDDD</section>
+
+  <script>
+    // 每个矩形块从 64 种秋景配色里随机选一种
+    document.querySelectorAll('.block').forEach(function (b) {
+      var n = Math.floor(Math.random() * 64) + 1;
+      b.classList.add('c' + n);
+    });
+  </script>
+
+</body>
+
+</html>
