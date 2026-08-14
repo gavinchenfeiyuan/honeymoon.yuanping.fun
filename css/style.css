@@ -28,12 +28,9 @@ body {
   /* 默认底色，JS 加载前不闪黑 */
 }
 
-/* 首块：满屏沙底，竖版 4:3 地图画框居中，上下留白由沙色填充 */
+/* 首块：竖版 4:3 地图画框，高度随内容自适应，无上下留白（下面直接接下一块） */
 .block-first {
   position: relative;
-  min-height: 100vh;
-  /* 移动端更准确，避开地址栏高度差 */
-  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
