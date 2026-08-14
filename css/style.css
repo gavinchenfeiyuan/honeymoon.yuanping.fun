@@ -71,7 +71,25 @@ body {
   z-index: 2;
   pointer-events: none;
   background: transparent;
-  opacity: 0.25;
+  opacity: 0.20;
+}
+
+/* 缺失点位报错条：plan 里有名字、但 place.json 里找不到坐标时显示 */
+#map-err {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  z-index: 3;
+  display: none;
+  padding: 8px 12px;
+  font: 12px/1.5 system-ui, -apple-system, "Noto Sans SC", sans-serif;
+  color: #A32D2D;
+  background: rgba(255, 255, 255, .92);
+  border: 1px solid #E24B4A;
+  border-radius: 8px;
+  word-break: break-all;
+  pointer-events: none;
 }
 
 #map-hint {

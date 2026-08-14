@@ -13,13 +13,14 @@
   <!-- 临时版本号：辨认变更用，确认后删掉这一行即可 -->
   <div id="ver"
     style="position:fixed;top:6px;right:8px;z-index:99999;font:12px/1.4 monospace;color:#222;background:rgba(255,255,255,.88);border:1px solid #999;border-radius:4px;padding:3px 6px;pointer-events:none;">
-    v1.9</div>
+    v0.20</div>
 
   <!-- 第一块：竖向 4:3 地图画框（行程点位 + 路线） -->
   <section class="block block-first" id="map-block">
     <div id="map-frame">
       <div id="map"></div>
       <div id="map-tint"></div>
+      <div id="map-err"></div>
       <div id="map-hint">地图加载中…<br />若空白，请在 index.html 底部填入高德 Web JS API 的 key 与安全密钥</div>
     </div>
   </section>
@@ -55,71 +56,97 @@
       function addPoints() {
         if (pointsAdded) return;   // 防止 complete 事件与兜底定时器重复添加
         pointsAdded = true;
-        fetch("place.json")
-          .then(function (r) {
-            if (!r.ok) throw new Error("HTTP " + r.status);
+        // 并行加载：path.json 提供点位顺序，place.json 提供坐标
+        Promise.all([
+          fetch("path.json").then(function (r) {
+            if (!r.ok) throw new Error("path.json HTTP " + r.status);
+            return r.json();
+          }),
+          fetch("place.json").then(function (r) {
+            if (!r.ok) throw new Error("place.json HTTP " + r.status);
             return r.json();
           })
-          .then(function (data) {
-            var pts = (data && data.place) || [];
-            if (!pts.length) { console.warn("place.json 没有点位"); return; }
-            var markers = [];
-            var infoWindow = null;
-            pts.forEach(function (p, i) {
-              var lng = Number(p.lng), lat = Number(p.lat);
-              if (!isFinite(lng) || !isFinite(lat)) {
-                console.warn("跳过无效坐标 #" + i, p);
-                return;
-              }
-              try {
-                var m = new AMap.Marker({
-                  position: [lng, lat],
-                  title: p.name + (p.location ? " · " + p.location : ""),
-                  map: map
-                });
-                // 点击标记弹出信息窗（显示名称 + 位置）
-                m.on("click", function () {
-                  if (infoWindow) infoWindow.close();
-                  infoWindow = new AMap.InfoWindow({
-                    content:
-                      '<div style="font:14px/1.6 system-ui,-apple-system,\'Noto Sans SC\',sans-serif;padding:2px 4px;color:#222;">' +
-                      '<strong>' + p.name + '</strong>' +
-                      (p.location ? '<br>' + p.location : '') +
-                      '</div>',
-                    offset: new AMap.Pixel(0, -32)
-                  });
-                  infoWindow.open(map, [lng, lat]);
-                });
-                markers.push(m);
-              } catch (e) {
-                console.warn("点位 #" + i + " 创建失败:", e && e.message, p);
-              }
-            });
-            if (markers.length > 1) {
-              var path = pts
-                .filter(function (p) {
-                  var lng = Number(p.lng), lat = Number(p.lat);
-                  return isFinite(lng) && isFinite(lat);
-                })
-                .map(function (p) { return [Number(p.lng), Number(p.lat)]; });
-              new AMap.Polyline({
-                path: path,
-                strokeColor: "#B23A2E",
-                strokeWeight: 3,
-                strokeOpacity: 0.85,
+        ]).then(function (results) {
+          var plan = (results[0] && results[0].plan) || [];
+          var places = (results[1] && results[1].place) || [];
+          if (!plan.length) { console.warn("path.json 没有 plan"); return; }
+          // name -> place 查找表
+          var placeMap = {};
+          places.forEach(function (p) {
+            if (p && p.name && !placeMap[p.name]) placeMap[p.name] = p;
+          });
+          var markers = [];
+          var infoWindow = null;
+          var missing = [];
+          // 严格按 plan 顺序打点
+          plan.forEach(function (item, i) {
+            var name = item && item.name;
+            if (!name || name === "overnight") return;   // 跳过住宿/占位项
+            var place = placeMap[name];
+            if (!place) {
+              missing.push(name);
+              console.error("plan 点位「" + name + "」(#" + i + ") 在 place.json 中未找到");
+              return;
+            }
+            var lng = Number(place.lng), lat = Number(place.lat);
+            if (!isFinite(lng) || !isFinite(lat)) {
+              missing.push(name);
+              console.error("plan 点位「" + name + "」坐标无效", place);
+              return;
+            }
+            try {
+              var m = new AMap.Marker({
+                position: [lng, lat],
+                title: name + (place.location ? " · " + place.location : ""),
                 map: map
               });
+              // 点击标记弹出信息窗（显示名称 + 位置）
+              m.on("click", function () {
+                if (infoWindow) infoWindow.close();
+                infoWindow = new AMap.InfoWindow({
+                  content:
+                    '<div style="font:14px/1.6 system-ui,-apple-system,\'Noto Sans SC\',sans-serif;padding:2px 4px;color:#222;">' +
+                    '<strong>' + name + '</strong>' +
+                    (place.location ? '<br>' + place.location : '') +
+                    '</div>',
+                  offset: new AMap.Pixel(0, -32)
+                });
+                infoWindow.open(map, [lng, lat]);
+              });
+              markers.push(m);
+            } catch (e) {
+              console.warn("点位「" + name + "」创建失败:", e && e.message);
             }
-            if (markers.length) {
-              // setFitView 自动按所有标记框定视野，比手动 setBounds 更稳
-              try { map.setFitView(markers, false, [40, 40, 40, 40]); }
-              catch (e) { console.warn("setFitView:", e); }
+          });
+          // 缺失点位：控制台报错 + 地图底部红字提示
+          if (missing.length) {
+            var errEl = document.getElementById("map-err");
+            if (errEl) {
+              errEl.style.display = "block";
+              errEl.textContent = missing.length + " 个点位在 place.json 中未找到：" + missing.join("、");
             }
-            // 点地图空白处关闭信息窗
-            map.on("click", function () { if (infoWindow) infoWindow.close(); });
-            setTimeout(function () { try { map.resize(); } catch (e) { } }, 150);
-          })
-          .catch(function (e) { console.error("读取 place.json 失败", e); });
+            console.error("缺失点位汇总：", missing);
+          }
+          // 路线：按 plan 顺序连接标记
+          if (markers.length > 1) {
+            var path = markers.map(function (m) { return m.getPosition(); });
+            new AMap.Polyline({
+              path: path,
+              strokeColor: "#B23A2E",
+              strokeWeight: 3,
+              strokeOpacity: 0.85,
+              map: map
+            });
+          }
+          if (markers.length) {
+            // setFitView 自动按所有标记框定视野，比手动 setBounds 更稳
+            try { map.setFitView(markers, false, [40, 40, 40, 40]); }
+            catch (e) { console.warn("setFitView:", e); }
+          }
+          // 点地图空白处关闭信息窗
+          map.on("click", function () { if (infoWindow) infoWindow.close(); });
+          setTimeout(function () { try { map.resize(); } catch (e) { } }, 150);
+        }).catch(function (e) { console.error("读取 path.json / place.json 失败", e); });
       }
 
       // 等地图投影“完成”再上点，避免渲染时序导致的 NaN；
