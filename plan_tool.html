@@ -448,6 +448,7 @@
   <header>
     <div class="logo">🥤 蜜月行程表 <span class="dot">path.json</span></div>
     <input id="amapKey" type="text" spellcheck="false" placeholder="高德 Key（选填，保存时自动查新地点坐标）">
+    <button id="saveBtn" class="btn btn-primary">💾 保存</button>
   </header>
 
   <div id="statusBar">
@@ -497,6 +498,7 @@
     const statusText = $("statusText"), content = $("content");
     const emptyState = $("emptyState");
     $("emptyPick").addEventListener("click", pickFile);
+    $("saveBtn").addEventListener("click", saveAll);
 
     /* ============ 状态 ============ */
     function setStatus(msg, cls) {
@@ -596,12 +598,7 @@
       addBtn.className = "btn btn-xs";
       addBtn.textContent = "＋ 新建行";
       addBtn.addEventListener("click", () => addRow(tbody, fields));
-      const saveBtn = document.createElement("button");
-      saveBtn.className = "btn btn-xs btn-primary";
-      saveBtn.textContent = "💾 保存";
-      saveBtn.addEventListener("click", saveAll);
       actions.appendChild(addBtn);
-      actions.appendChild(saveBtn);
       head.appendChild(actions);
       card.appendChild(head);
 
