@@ -68,6 +68,25 @@
 
   <!-- 其余块：从 64 种秋景配色随机上色（地图块除外） -->
   <script>
+    // 取 .cN 类对应的背景色（用于给地图边框上色）
+    function pickColor(n) {
+      var tmp = document.createElement("div");
+      tmp.className = "c" + n;
+      tmp.style.display = "none";
+      document.body.appendChild(tmp);
+      var col = getComputedStyle(tmp).backgroundColor;
+      document.body.removeChild(tmp);
+      return col;
+    }
+
+    // 地图块：厚边框，颜色从 64 色库随机抽
+    var mb = document.getElementById("map-block");
+    if (mb) {
+      var bn = Math.floor(Math.random() * 64) + 1;
+      mb.style.borderColor = pickColor(bn);
+    }
+
+    // 其余矩形块：随机上色
     document.querySelectorAll(".block:not(#map-block)").forEach(function (b) {
       var n = Math.floor(Math.random() * 64) + 1;
       b.classList.add("c" + n);
