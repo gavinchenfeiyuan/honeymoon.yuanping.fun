@@ -13,7 +13,7 @@
   <!-- 临时版本号：辨认变更用，确认后删掉这一行即可 -->
   <div id="ver"
     style="position:fixed;top:6px;right:8px;z-index:99999;font:12px/1.4 monospace;color:#222;background:rgba(255,255,255,.88);border:1px solid #999;border-radius:4px;padding:3px 6px;pointer-events:none;">
-    v1.6</div>
+    v1.7</div>
 
   <div id="debug"></div>
 
@@ -21,6 +21,7 @@
   <section class="block block-first" id="map-block">
     <div id="map-frame">
       <div id="map"></div>
+      <div id="map-tint"></div>
       <div id="map-hint">地图加载中…<br />若空白，请在 index.html 底部填入高德 Web JS API 的 key 与安全密钥</div>
     </div>
   </section>
@@ -36,60 +37,6 @@
 
   <!-- 地图初始化（高德 JS API 加载完成后回调） -->
   <script>
-    // ===== 底图色调工具：跟随边框随机色，但调浅保证可读 =====
-    function rgbStrToHsl(rgb) {
-      var m = (rgb || "").match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
-      if (!m) return { h: 45, s: 50, l: 60 };   // 解析失败默认暖金
-      var r = +m[1] / 255, g = +m[2] / 255, b = +m[3] / 255;
-      var max = Math.max(r, g, b), min = Math.min(r, g, b);
-      var h, s, l = (max + min) / 2;
-      if (max === min) { h = 0; s = 0; }
-      else {
-        var d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
-        else if (max === g) h = (b - r) / d + 2;
-        else h = (r - g) / d + 4;
-        h *= 60;
-      }
-      return { h: h, s: s * 100, l: l * 100 };
-    }
-
-    function hslToRgb(h, s, l) {
-      s /= 100; l /= 100;
-      var c = (1 - Math.abs(2 * l - 1)) * s;
-      var x = c * (1 - Math.abs((h / 60) % 2 - 1));
-      var m = l - c / 2;
-      var r = 0, g = 0, b = 0;
-      if (h < 60) { r = c; g = x; }
-      else if (h < 120) { r = x; g = c; }
-      else if (h < 180) { g = c; b = x; }
-      else if (h < 240) { g = x; b = c; }
-      else if (h < 300) { r = x; b = c; }
-      else { r = c; b = x; }
-      return "rgb(" + Math.round((r + m) * 255) + "," + Math.round((g + m) * 255) + "," + Math.round((b + m) * 255) + ")";
-    }
-
-    // 根据边框色相生成「同色系浅色」底图样式并应用
-    function applyMapTint(map, borderRgb) {
-      var h = Math.round(rgbStrToHsl(borderRgb).h);
-      if (h >= 360) h = 0;
-      // 先落到确定可用的浅色预置，保证「浅、可读」
-      try { map.setMapStyle("amap://styles/whitesmoke"); } catch (e) { }
-      // 再用同色系浅色样式覆盖（高饱和度、高亮度 → 底图很淡，红点红线更醒目）
-      var styleObj = {
-        styleJson: [
-          { featureType: "land", elementType: "all", stylers: { color: hslToRgb(h, 30, 95) } },
-          { featureType: "water", elementType: "all", stylers: { color: hslToRgb(h, 18, 90) } },
-          { featureType: "green", elementType: "all", stylers: { color: hslToRgb(h, 34, 88) } },
-          { featureType: "road", elementType: "all", stylers: { color: hslToRgb(h, 10, 97) } },
-          { featureType: "building", elementType: "all", stylers: { color: hslToRgb(h, 20, 92) } },
-          { featureType: "boundary", elementType: "all", stylers: { color: hslToRgb(h, 14, 82) } }
-        ]
-      };
-      try { map.setMapStyle(styleObj); } catch (e) { }
-    }
-
     function onAMapLoaded() {
       window.__mapOk = true;
       // 显式给出中心点，避免默认中心在极端情况下为 NaN
@@ -101,14 +48,11 @@
       var hint = document.getElementById("map-hint");
       if (hint) hint.style.display = "none";
 
-      // 底图色调跟随边框随机色（调浅，保证可读）
-      var frame = document.getElementById("map-frame");
-      var bc = frame ? getComputedStyle(frame).borderColor : "";
-      function tint() {
-        try { applyMapTint(map, bc); } catch (e) { console.warn("底图着色失败:", e); }
-      }
-      tint();                                       // 立即试一次
-      if (map && map.on) map.on("complete", tint);  // complete 后再补一次，确保生效
+      // 底图用浅色预置（远山黛），保证可读；同色系色调由覆盖层 #map-tint 实现
+      try { map.setMapStyle("amap://styles/whitesmoke"); } catch (e) { }
+      if (map && map.on) map.on("complete", function () {
+        try { map.setMapStyle("amap://styles/whitesmoke"); } catch (e) { }
+      });
 
       var pointsAdded = false;
       function addPoints() {
@@ -262,7 +206,11 @@
     var mb = document.getElementById("map-frame");
     if (mb) {
       var bn = Math.floor(Math.random() * 64) + 1;
-      mb.style.borderColor = pickColor(bn);
+      var borderCol = pickColor(bn);
+      mb.style.borderColor = borderCol;
+      // 底图染色层：与边框同色系，低透明度叠在浅色底图上
+      var tintEl = document.getElementById("map-tint");
+      if (tintEl) tintEl.style.backgroundColor = borderCol;
     }
 
     // 其余矩形块：随机上色
