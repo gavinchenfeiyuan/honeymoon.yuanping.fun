@@ -111,325 +111,351 @@ body {
 }
 
 /* ===== 64 种秋景配色 =====
-   暖金(1-16)深字 / 橙(17-32)白字 / 赤红(33-48)白字 / 松绿(49-64)白字 */
+   16 种中国古典色 x 4 轮（.c1~.c16 藤黄..天青，.c17 起循环） */
+
 .c1 {
-  background: #E0A93B;
+  background: rgb(255, 182, 30);
   color: #1A1A1A
 }
 
 .c2 {
-  background: #D99A2B;
-  color: #1A1A1A
+  background: rgb(66, 80, 102);
+  color: #FFFFFF
 }
 
 .c3 {
-  background: #E8B84B;
+  background: rgb(255, 166, 49);
   color: #1A1A1A
 }
 
 .c4 {
-  background: #C98A2B;
-  color: #1A1A1A
+  background: rgb(157, 41, 51);
+  color: #FFFFFF
 }
 
 .c5 {
-  background: #F0C04A;
+  background: rgb(214, 236, 240);
   color: #1A1A1A
 }
 
 .c6 {
-  background: #D4A017;
+  background: rgb(226, 156, 69);
   color: #1A1A1A
 }
 
 .c7 {
-  background: #E6B422;
-  color: #1A1A1A
+  background: rgb(120, 146, 98);
+  color: #FFFFFF
 }
 
 .c8 {
-  background: #C8992E;
-  color: #1A1A1A
+  background: rgb(255, 70, 31);
+  color: #FFFFFF
 }
 
 .c9 {
-  background: #EBB84D;
+  background: rgb(217, 182, 17);
   color: #1A1A1A
 }
 
 .c10 {
-  background: #D9A441;
-  color: #1A1A1A
+  background: rgb(5, 119, 72);
+  color: #FFFFFF
 }
 
 .c11 {
-  background: #E3A82E;
-  color: #1A1A1A
+  background: rgb(202, 105, 36);
+  color: #FFFFFF
 }
 
 .c12 {
-  background: #F2C75C;
+  background: rgb(240, 194, 57);
   color: #1A1A1A
 }
 
 .c13 {
-  background: #CFA83C;
-  color: #1A1A1A
+  background: rgb(132, 90, 51);
+  color: #FFFFFF
 }
 
 .c14 {
-  background: #E0A030;
+  background: rgb(255, 241, 67);
   color: #1A1A1A
 }
 
 .c15 {
-  background: #D8A94A;
-  color: #1A1A1A
-}
-
-.c16 {
-  background: #EDBE55;
-  color: #1A1A1A
-}
-
-.c17 {
-  background: #D9722E;
+  background: rgb(66, 102, 102);
   color: #FFFFFF
 }
 
+.c16 {
+  background: rgb(63, 143, 168);
+  color: #FFFFFF
+}
+
+.c17 {
+  background: rgb(255, 182, 30);
+  color: #1A1A1A
+}
+
 .c18 {
-  background: #C8612A;
+  background: rgb(66, 80, 102);
   color: #FFFFFF
 }
 
 .c19 {
-  background: #E07B33;
-  color: #FFFFFF
+  background: rgb(255, 166, 49);
+  color: #1A1A1A
 }
 
 .c20 {
-  background: #B9531F;
+  background: rgb(157, 41, 51);
   color: #FFFFFF
 }
 
 .c21 {
-  background: #DA7A3A;
-  color: #FFFFFF
+  background: rgb(214, 236, 240);
+  color: #1A1A1A
 }
 
 .c22 {
-  background: #CF6A2C;
-  color: #FFFFFF
+  background: rgb(226, 156, 69);
+  color: #1A1A1A
 }
 
 .c23 {
-  background: #E3894A;
+  background: rgb(120, 146, 98);
   color: #FFFFFF
 }
 
 .c24 {
-  background: #C25E22;
+  background: rgb(255, 70, 31);
   color: #FFFFFF
 }
 
 .c25 {
-  background: #D56B2E;
-  color: #FFFFFF
+  background: rgb(217, 182, 17);
+  color: #1A1A1A
 }
 
 .c26 {
-  background: #BE5A1C;
+  background: rgb(5, 119, 72);
   color: #FFFFFF
 }
 
 .c27 {
-  background: #E08A45;
+  background: rgb(202, 105, 36);
   color: #FFFFFF
 }
 
 .c28 {
-  background: #CB6528;
-  color: #FFFFFF
+  background: rgb(240, 194, 57);
+  color: #1A1A1A
 }
 
 .c29 {
-  background: #D97C38;
+  background: rgb(132, 90, 51);
   color: #FFFFFF
 }
 
 .c30 {
-  background: #B8501A;
-  color: #FFFFFF
+  background: rgb(255, 241, 67);
+  color: #1A1A1A
 }
 
 .c31 {
-  background: #DD8740;
+  background: rgb(66, 102, 102);
   color: #FFFFFF
 }
 
 .c32 {
-  background: #C9682E;
+  background: rgb(63, 143, 168);
   color: #FFFFFF
 }
 
 .c33 {
-  background: #B23A2E;
-  color: #FFFFFF
+  background: rgb(255, 182, 30);
+  color: #1A1A1A
 }
 
 .c34 {
-  background: #A8322A;
+  background: rgb(66, 80, 102);
   color: #FFFFFF
 }
 
 .c35 {
-  background: #C0432F;
-  color: #FFFFFF
+  background: rgb(255, 166, 49);
+  color: #1A1A1A
 }
 
 .c36 {
-  background: #9E2E24;
+  background: rgb(157, 41, 51);
   color: #FFFFFF
 }
 
 .c37 {
-  background: #B8402E;
-  color: #FFFFFF
+  background: rgb(214, 236, 240);
+  color: #1A1A1A
 }
 
 .c38 {
-  background: #AC3528;
-  color: #FFFFFF
+  background: rgb(226, 156, 69);
+  color: #1A1A1A
 }
 
 .c39 {
-  background: #C84A33;
+  background: rgb(120, 146, 98);
   color: #FFFFFF
 }
 
 .c40 {
-  background: #A02D22;
+  background: rgb(255, 70, 31);
   color: #FFFFFF
 }
 
 .c41 {
-  background: #BB3E2C;
-  color: #FFFFFF
+  background: rgb(217, 182, 17);
+  color: #1A1A1A
 }
 
 .c42 {
-  background: #9C342A;
+  background: rgb(5, 119, 72);
   color: #FFFFFF
 }
 
 .c43 {
-  background: #C23F30;
+  background: rgb(202, 105, 36);
   color: #FFFFFF
 }
 
 .c44 {
-  background: #A6342A;
-  color: #FFFFFF
+  background: rgb(240, 194, 57);
+  color: #1A1A1A
 }
 
 .c45 {
-  background: #B53A2E;
+  background: rgb(132, 90, 51);
   color: #FFFFFF
 }
 
 .c46 {
-  background: #A12C20;
-  color: #FFFFFF
+  background: rgb(255, 241, 67);
+  color: #1A1A1A
 }
 
 .c47 {
-  background: #C04634;
+  background: rgb(66, 102, 102);
   color: #FFFFFF
 }
 
 .c48 {
-  background: #AE3829;
+  background: rgb(63, 143, 168);
   color: #FFFFFF
 }
 
 .c49 {
-  background: #2F4F3A;
-  color: #FFFFFF
+  background: rgb(255, 182, 30);
+  color: #1A1A1A
 }
 
 .c50 {
-  background: #36583F;
+  background: rgb(66, 80, 102);
   color: #FFFFFF
 }
 
 .c51 {
-  background: #294A36;
-  color: #FFFFFF
+  background: rgb(255, 166, 49);
+  color: #1A1A1A
 }
 
 .c52 {
-  background: #3C6044;
+  background: rgb(157, 41, 51);
   color: #FFFFFF
 }
 
 .c53 {
-  background: #2B4A38;
-  color: #FFFFFF
+  background: rgb(214, 236, 240);
+  color: #1A1A1A
 }
 
 .c54 {
-  background: #32533C;
-  color: #FFFFFF
+  background: rgb(226, 156, 69);
+  color: #1A1A1A
 }
 
 .c55 {
-  background: #284637;
+  background: rgb(120, 146, 98);
   color: #FFFFFF
 }
 
 .c56 {
-  background: #3A5A41;
+  background: rgb(255, 70, 31);
   color: #FFFFFF
 }
 
 .c57 {
-  background: #2D4D39;
-  color: #FFFFFF
+  background: rgb(217, 182, 17);
+  color: #1A1A1A
 }
 
 .c58 {
-  background: #355640;
+  background: rgb(5, 119, 72);
   color: #FFFFFF
 }
 
 .c59 {
-  background: #264534;
+  background: rgb(202, 105, 36);
   color: #FFFFFF
 }
 
 .c60 {
-  background: #3E6246;
-  color: #FFFFFF
+  background: rgb(240, 194, 57);
+  color: #1A1A1A
 }
 
 .c61 {
-  background: #2F4F3A;
+  background: rgb(132, 90, 51);
   color: #FFFFFF
 }
 
 .c62 {
-  background: #345840;
-  color: #FFFFFF
+  background: rgb(255, 241, 67);
+  color: #1A1A1A
 }
 
 .c63 {
-  background: #2A4735;
+  background: rgb(66, 102, 102);
   color: #FFFFFF
 }
 
 .c64 {
-  background: #3C5C42;
+  background: rgb(63, 143, 168);
   color: #FFFFFF
 }
 
 /* 加块：复制 <section class="block">文字</section>，JS 会自动随机上色 */
+
+/* 点位标记：红圆点 + 名称标签（MarkerView content） */
+.map-dot-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.map-dot-name {
+  font: 12px/1 system-ui, -apple-system, "Noto Sans SC", sans-serif;
+  color: #333;
+  background: rgba(255, 255, 255, .88);
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
+}
+
+.map-dot {
+  width: 3px;
+  height: 3px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: #777;
+}
