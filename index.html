@@ -10,6 +10,8 @@
 
 <body>
 
+  <div id="debug"></div>
+
   <!-- 第一块：竖向 4:3 地图画框（行程点位 + 路线） -->
   <section class="block block-first" id="map-block">
     <div id="map-frame">
@@ -36,7 +38,13 @@
       if (hint) hint.style.display = "none";
 
       // 容器尺寸可能初始化时尚未稳定，强制重算一次瓦片尺寸
-      setTimeout(function () { try { map.resize(); } catch (e) { } }, 300);
+      setTimeout(function () {
+        try {
+          map.resize();
+          var s = map.getSize();
+          window.__mapSize = { width: s.getWidth(), height: s.getHeight() };
+        } catch (e) { }
+      }, 300);
 
       fetch("place.json")
         .then(function (r) { return r.json(); })
@@ -75,19 +83,35 @@
   <script src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"
     onerror="window.__mapErr = true;"></script>
 
-  <!-- 加载兜底：6 秒未出图，给出排查提示 -->
+  <!-- 调试条 + 加载兜底：把当前访问地址和报错直接显示在屏幕上 -->
   <script>
+    var dbg = document.getElementById("debug");
+    function setDebug(msg) {
+      if (dbg) dbg.textContent = msg;
+    }
+    setDebug("host: " + location.host + " | key已填");
+
+    // 捕获全局报错（含高德异步错误，如白名单不匹配 USERKEY_PLAT_NOMATCH）
+    window.addEventListener("error", function (e) {
+      var m = e && (e.message || (e.error && e.error.message) || e.filename) || "未知错误";
+      setDebug("host: " + location.host + " | 报错: " + m);
+    }, true);
+
+    // 6 秒后无论是否“初始化成功”，只要屏幕还空白就给出白名单排查
     setTimeout(function () {
-      if (window.__mapOk) return;
       var h = document.getElementById("map-hint");
-      if (!h) return;
-      h.style.display = "flex";
-      h.innerHTML =
-        "地图未能加载。<br><br>" +
-        "请按顺序排查：<br>" +
-        "① 是否用<b>本机浏览器</b>打开 http://localhost:8011（应用内预览窗的域名过不了白名单）；<br>" +
-        "② 高德 key 的「域名白名单」是否加了 <b>localhost</b> 和 <b>127.0.0.1</b>；<br>" +
-        "③ 按 F12 看 Console 报错（如 USERKEY_PLAT_NOMATCH = 白名单问题）。";
+      var sizeOk = false;
+      try { sizeOk = window.__mapSize && window.__mapSize.height > 50; } catch (e) { }
+      if (window.__mapOk && sizeOk) return; // 已正常出图
+      if (h) {
+        h.style.display = "flex";
+        h.innerHTML =
+          "当前访问地址：<b>" + location.host + "</b><br><br>" +
+          "请确认高德 key 的「域名白名单」里有一项<b>完全等于上面这个地址</b>（或它的 IP）。<br>" +
+          "手机上 localhost / 127.0.0.1 指向手机自己，连不到电脑服务，请勿用。<br>" +
+          "白名单每行一个，不要带 ~~~ 等符号：<br>" +
+          "例：<br>192.168.x.x（你电脑局域网 IP）<br>honeymoon.yuanping.fun<br>localhost";
+      }
     }, 6000);
   </script>
 
