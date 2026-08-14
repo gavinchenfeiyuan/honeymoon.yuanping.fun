@@ -56,17 +56,22 @@ body {
 }
 
 #map {
-  position: relative;
+  position: absolute;
+  /* 关键：绝对定位填满画框内容区（贴着内边框），
+     这样地图脚本初始化时 #map 就拥有非零尺寸，
+     避免高德因容器 0 尺寸把坐标换算成 NaN（Pixel(NaN,NaN)） */
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 1;
-  width: 100%;
-  /* 确定高度：视口高减去上下边框，避免百分比塌成 0 导致瓦片不渲染 */
-  height: calc(100vh - var(--map-border) * 2);
-  height: calc(100dvh - var(--map-border) * 2);
 }
 
 #map-hint {
   position: absolute;
   inset: 0;
+  z-index: 2;
+  /* 出错时浮在地图之上，便于看到提示 */
   pointer-events: none;
   /* 加载前也别拦截对地图的触摸 */
   display: flex;

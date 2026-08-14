@@ -33,60 +33,88 @@
   <script>
     function onAMapLoaded() {
       window.__mapOk = true;
-      var map = new AMap.Map("map", { zoom: 6, viewMode: "2D" });
+      // 显式给出中心点，避免默认中心在极端情况下为 NaN
+      var map = new AMap.Map("map", {
+        zoom: 5,
+        center: [116.397, 39.909],
+        viewMode: "2D"
+      });
       var hint = document.getElementById("map-hint");
       if (hint) hint.style.display = "none";
 
-      // 容器尺寸可能初始化时尚未稳定，强制重算一次瓦片尺寸
+      var pointsAdded = false;
+      function addPoints() {
+        if (pointsAdded) return;   // 防止 complete 事件与兜底定时器重复添加
+        pointsAdded = true;
+        fetch("place.json")
+          .then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+          })
+          .then(function (data) {
+            var pts = (data && data.place) || [];
+            if (!pts.length) { console.warn("place.json 没有点位"); return; }
+            var markers = [];
+            pts.forEach(function (p, i) {
+              var lng = Number(p.lng), lat = Number(p.lat);
+              if (!isFinite(lng) || !isFinite(lat)) {
+                console.warn("跳过无效坐标 #" + i, p);
+                return;
+              }
+              try {
+                var m = new AMap.Marker({
+                  position: [lng, lat],
+                  title: p.name + (p.location ? " · " + p.location : ""),
+                  map: map
+                });
+                markers.push(m);
+              } catch (e) {
+                console.warn("点位 #" + i + " 创建失败:", e && e.message, p);
+              }
+            });
+            if (markers.length > 1) {
+              var path = pts
+                .filter(function (p) {
+                  var lng = Number(p.lng), lat = Number(p.lat);
+                  return isFinite(lng) && isFinite(lat);
+                })
+                .map(function (p) { return [Number(p.lng), Number(p.lat)]; });
+              new AMap.Polyline({
+                path: path,
+                strokeColor: "#B23A2E",
+                strokeWeight: 3,
+                strokeOpacity: 0.85,
+                map: map
+              });
+            }
+            if (markers.length) {
+              // setFitView 自动按所有标记框定视野，比手动 setBounds 更稳
+              try { map.setFitView(markers, false, [40, 40, 40, 40]); }
+              catch (e) { console.warn("setFitView:", e); }
+            }
+            setTimeout(function () { try { map.resize(); } catch (e) { } }, 150);
+          })
+          .catch(function (e) { console.error("读取 place.json 失败", e); });
+      }
+
+      // 等地图投影“完成”再上点，避免渲染时序导致的 NaN；
+      // 同时加一个短定时器兜底（complete 可能已提前触发而漏接）
+      if (map) {
+        map.on("complete", addPoints);
+        setTimeout(addPoints, 600);
+      }
+
+      // 尺寸兜底：加载后 & 窗口尺寸变化时重算瓦片
+      window.addEventListener("resize", function () { try { map.resize(); } catch (e) { } });
       setTimeout(function () {
         try {
           map.resize();
           var s = map.getSize();
-          window.__mapSize = { width: s.getWidth(), height: s.getHeight() };
+          var w = s.getWidth(), h = s.getHeight();
+          window.__mapSize = { width: w, height: h };
+          if (window.setDebug) setDebug("host: " + location.host + " | 地图 " + w + "x" + h);
         } catch (e) { }
       }, 300);
-
-      fetch("place.json")
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          var pts = (data && data.place) || [];
-          if (!pts.length) return;
-          var path = [];
-          var bounds = new AMap.Bounds();
-          pts.forEach(function (p, i) {
-            var lng = Number(p.lng), lat = Number(p.lat);
-            if (!isFinite(lng) || !isFinite(lat)) {
-              console.warn("跳过无效坐标 #" + i, p);
-              return;
-            }
-            try {
-              new AMap.Marker({
-                position: [lng, lat],
-                title: p.name + (p.location ? " · " + p.location : ""),
-                map: map
-              });
-              bounds.extend([lng, lat]);
-              path.push([lng, lat]);
-            } catch (e) {
-              console.warn("点位 #" + i + " 创建失败:", e && e.message, p);
-            }
-          });
-          if (path.length > 1) {
-            new AMap.Polyline({
-              path: path,
-              strokeColor: "#B23A2E",
-              strokeWeight: 3,
-              strokeOpacity: 0.85,
-              map: map
-            });
-          }
-          if (path.length) {
-            try { map.setBounds(bounds, false); } catch (e) { console.warn("setBounds:", e); }
-          }
-          // 框完范围后再 resize，确保瓦片按真实尺寸铺满
-          setTimeout(function () { try { map.resize(); } catch (e) { } }, 100);
-        })
-        .catch(function (e) { console.error("读取 place.json 失败", e); });
     }
   </script>
 
