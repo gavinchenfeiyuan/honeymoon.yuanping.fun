@@ -222,3 +222,7 @@
 ## v0.55
 
 - 交通方式标签定位修正：锚点由 `center` 改 `top-left` + 标签自身 `translate(-50%,-50%)`，确保精确落在路段**正中间**（AMap 2.0 的 `center` 关键字不可靠，会偏到线下方）
+
+## v0.56
+
+- 交通方式标签居中再修：AMap 2.0 会用自身 `transform` 覆盖元素上的 `translate(-50%,-50%)`，导致仍偏下方。改在渲染后读取标签实际尺寸，用 `setOffset(-w/2, -h/2)` 负半偏移精确居中（兼容 `getDom/getElement/getContent`）

@@ -182,12 +182,11 @@ body {
   box-shadow: 0 0 0 2px rgba(194, 80, 42, .30), 0 1px 3px rgba(0, 0, 0, .35);
 }
 
-/* 交通方式标签：显示在线路正中间，纯文字无背景框（自身平移 -50% 居中） */
+/* 交通方式标签：显示在线路正中间，纯文字无背景框（用 JS setOffset 居中） */
 .map-transport {
   display: inline-block;
   font: 11px/1 system-ui, -apple-system, "Noto Sans SC", sans-serif;
   color: #333;
   white-space: nowrap;
-  transform: translate(-50%, -50%);
   text-shadow: 0 0 2px #fff, 0 0 3px #fff;
 }

@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.55</div>
+      <div id="ver-tag">v0.56</div>
     </div>
   </section>
 
@@ -188,13 +188,23 @@
               });
               // 交通方式：plan.transportation 非空时，显示在该点前面进入线路的正中间
               if (segTo.transportation) {
-                new AMap.Marker({
+                var tm = new AMap.Marker({
                   position: [(segFrom.lng + segTo.lng) / 2, (segFrom.lat + segTo.lat) / 2],
                   anchor: "top-left",
                   zIndex: 7,
                   content: '<div class="map-transport">' + segTo.transportation + '</div>',
                   map: map
                 });
+                // AMap 2.0 会用自己的 transform 覆盖元素的 translate，故改用 setOffset 负半尺寸居中
+                setTimeout(function () {
+                  var el = (tm.getDom && tm.getDom()) || (tm.getElement && tm.getElement()) || (tm.getContent && tm.getContent());
+                  if (el && el.getBoundingClientRect) {
+                    var r = el.getBoundingClientRect();
+                    if (r.width && r.height) {
+                      tm.setOffset(new AMap.Pixel(-r.width / 2, -r.height / 2));
+                    }
+                  }
+                }, 0);
               }
             }
           }
