@@ -96,3 +96,7 @@
 - 移除 `overnight` 占位项跳过逻辑（不再使用 overnight 数据）
 - 路线简化：取消按 date 分段同色、取消 Catmull-Rom 贝塞尔曲线（疑似未生效）、取消 64 色秋景库 + 灰蒙版配色
 - 路线改为一条普通折线（Polyline），统一使用高德默认颜色，线宽 3、不透明度 0.85
+
+## v0.32
+
+- **iOS Safari 移动端兼容性修复**：36px 厚边框会遮挡高德版权信息（`amap-copyright`）和 Logo（`amap-logo`），CSS 统一把两者 `bottom` 上移 40px（>36px 边框），让版权完整显示在地图内、远离边框。桌面端不受影响

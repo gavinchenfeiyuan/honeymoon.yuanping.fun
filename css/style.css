@@ -448,3 +448,11 @@ body {
   border-radius: 50%;
   background: #777;
 }
+
+/* ====== iOS Safari 移动端：36px 厚边框会遮挡高德版权/Logo ======
+   统一上移 40px（>36px 边框），让版权完整显示在地图内、远离边框。
+   桌面端不受影响（地图更大，版权靠右下角本来也不贴边）。 */
+.amap-copyright,
+.amap-logo {
+  bottom: 40px !important;
+}
