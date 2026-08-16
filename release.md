@@ -258,3 +258,19 @@
   - 根因：v0.59 引入的 `AMap.DOMOverlay` 是**插件**，默认不随核心 API 加载，`onAMapLoaded` 里 `AMap.DOMOverlay.call(this)` 时其为 `undefined` → 抛 `TypeError` → `addPoints` 整体中断，点位/路线/区域全部未绘制（仅地图底图正常）
   - 修复①：JS API URL 加 `&plugin=AMap.DOMOverlay` 显式加载插件
   - 修复②：`TransportLabel` 定义改为 `typeof AMap.DOMOverlay === "function"` 判断后才创建，交通标签创建处 try/catch 兜底——即使插件加载失败，也不影响点位/路线渲染
+
+## v0.62
+
+- **点位标签分级策略改为 `explicit` 字段显式控制**（替代 v0.60 的 county 代表点方案）：
+  - `path.json` 每个点位新增 `explicit` 布尔字段：`true` 的点默认（全 zoom 段 3~20）显示 name，`false` 的点放大到 zoom ≥ 8 才显示 name
+  - 标记 `zooms` 属性按 `explicit` 二选一：`explicit===true` → `[3,20]`，否则 `[8,20]`
+  - 不再显示 county 名（删除 `.map-dot-county` 样式与代表点逻辑）
+  - 行程骨架（机场/火车站/主要城市/过夜点/关键景点）标 `explicit:true`，同城密集的次要点标 `false`
+- 小比例尺只露行程骨架，放大后展开全部点位，避免市区密集点糊成一团
+
+## v0.63
+
+- **交通方式标签从 `AMap.DOMOverlay` 改回 `AMap.Text`（修复 transportation 不显示的 bug）**
+  - 根因：`AMap.DOMOverlay` 是 JSAPI **v1.4.x 旧版**概念，2.0（WebGL）核心类表里根本没有它，`&plugin=AMap.DOMOverlay` 也加载不到，`typeof AMap.DOMOverlay === "function"` 恒为 false → `TransportLabel` 一直是 null → 交通标签一个都没创建
+  - 修复：改用 2.0 原生 `AMap.Text`（继承自 `AMap.Marker`），`anchor: "center"` 让文字几何中心精确落在路段中点，`zIndex: 20` 高于路线/标记确保不被遮挡，`clickable: false` + `pointer-events: none` 不拦触摸
+  - 移除 API URL 的 `&plugin=AMap.DOMOverlay`，删除 `TransportLabel` 类定义与 `createDOM/draw` 逻辑

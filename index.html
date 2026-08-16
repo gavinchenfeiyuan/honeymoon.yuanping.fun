@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.61</div>
+      <div id="ver-tag">v0.63</div>
     </div>
   </section>
 
@@ -52,37 +52,27 @@
         try { map.setMapStyle("amap://styles/whitesmoke"); } catch (e) { }
       });
 
-      // 交通方式标签：自定义 DOM 覆盖物。
-      // 定位用 lngLatToContainer 拿到精确像素点，居中用 CSS transform:translate(-50%,-50%)，
-      // 由浏览器布局引擎保证几何中心精确落在坐标点，无 Marker anchor/offset 的换算歧义。
-      // 注：AMap.DOMOverlay 是插件，需在 API URL 加 &plugin=AMap.DOMOverlay 才可用。
-      var TransportLabel = null;
-      if (typeof AMap.DOMOverlay === "function") {
-        TransportLabel = function (lnglat, text) {
-          this._lnglat = lnglat;
-          this._text = text;
-          AMap.DOMOverlay.call(this);
-        };
-        TransportLabel.prototype = Object.create(AMap.DOMOverlay.prototype);
-        TransportLabel.prototype.constructor = TransportLabel;
-
-        TransportLabel.prototype.createDOM = function () {
-          var el = document.createElement("div");
-          el.className = "map-transport";
-          el.textContent = this._text;
-          // 关键：绝对定位 + transform 让元素中心对齐；textShadow 由 .map-transport 提供
-          el.style.cssText = "position:absolute;white-space:nowrap;transform:translate(-50%,-50%);";
-          return el;
-        };
-
-        TransportLabel.prototype.draw = function () {
-          // 地图移动/缩放时 AMap 回调 draw() 重算像素位置
-          var proj = this.getProjection();
-          if (!proj) return;                    // 首帧投影未就绪则跳过，complete 后会重绘
-          var pos = proj.lngLatToContainer(this._lnglat);
-          this.dom.style.left = pos.getX() + "px";
-          this.dom.style.top = pos.getY() + "px";
-        };
+      // 交通方式标签：用 AMap.Text（2.0 原生，继承自 AMap.Marker）。
+      // anchor:'center' 让文字几何中心精确落在 position 坐标点，无 DOMOverlay 的插件/像素换算歧义。
+      function makeTransportLabel(lnglat, text) {
+        return new AMap.Text({
+          text: text,
+          position: [lnglat.getLng(), lnglat.getLat()],
+          anchor: "center",
+          zIndex: 20,   // 高于路线(5/6)与标记(10)，确保 emoji 不被遮挡
+          clickable: false,
+          style: {
+            "font-size": "11px",
+            "line-height": "1",
+            "color": "#333",
+            "white-space": "nowrap",
+            "text-shadow": "0 0 2px #fff, 0 0 3px #fff",
+            "background": "transparent",
+            "padding": "0",
+            "border": "none",
+            "pointer-events": "none"
+          }
+        });
       }
 
       var pointsAdded = false;
@@ -142,17 +132,6 @@
           var infoWindow = null;
           var bad = [];       // coordinate 缺失/格式异常的点
           var dayPoints = []; // {lng,lat,date} 按 plan 顺序，用于绘制路线
-          // county 代表点：每个 county 第一个出现的点，小比例尺(zoom<8)只显示这些点的 county 名，
-          // 其余同 county 点小比例尺隐藏、放大(zoom>=8)再显示具体 name——避免同城密集点标签糊成一团
-          var countyRep = {};  // county -> true（是否已是代表点）
-          var repIndex = {};   // county -> 该 county 首个点位索引
-          plan.forEach(function (item, idx) {
-            var c = item && item.county;
-            if (c && !countyRep[c]) {
-              countyRep[c] = true;
-              repIndex[c] = idx;
-            }
-          });
           // 严格按 plan 顺序打点
           plan.forEach(function (item, i) {
             var name = item && item.name;
@@ -167,16 +146,16 @@
             try {
               // 地名背景框颜色：同 date 同色（淡化后）
               var dayColor = colorOf(String(item.date || "").slice(0, 6));
-              var isRep = item.county && repIndex[item.county] === i;   // 是否为该 county 代表点
-              var ZOOM_NAME_MIN = 8;   // zoom >= 8 显示具体点位名；< 8 显示 county 名（仅代表点）
+              var ZOOM_NAME_MIN = 8;   // zoom >= 8 显示具体点位名
               var dotHtml = '<span class="map-dot' + (item.arrived ? ' arrived' : '') + '"></span>';
+              // explicit: true 的点默认（全 zoom 段）显示 name；否则放大到 zoom >= 8 才显示
+              var zooms = (item.explicit === true) ? [3, 20] : [ZOOM_NAME_MIN, 20];
 
-              // ① 具体点位名标签：zoom >= 8 显示（圆点 + name）
               var m = new AMap.Marker({
                 position: [lng, lat],
                 anchor: "bottom-center",
                 zIndex: 10,
-                zooms: [ZOOM_NAME_MIN, 20],
+                zooms: zooms,
                 content:
                   '<div class="map-dot-wrap">' +
                   '<span class="map-dot-name" style="background:' + dayColor + '">' + name + '</span>' +
@@ -184,38 +163,6 @@
                   '</div>',
                 map: map
               });
-
-              // ② county 代表点标签：zoom < 8 显示（county 名 + 圆点），仅该 county 首个点
-              if (isRep) {
-                var cm = new AMap.Marker({
-                  position: [lng, lat],
-                  anchor: "bottom-center",
-                  zIndex: 9,
-                  zooms: [3, ZOOM_NAME_MIN - 1],
-                  content:
-                    '<div class="map-dot-wrap">' +
-                    '<span class="map-dot-county">' + item.county + '</span>' +
-                    dotHtml +
-                    '</div>',
-                  map: map
-                });
-                // county 标签点击同样弹信息窗
-                cm.on("click", function () {
-                  if (infoWindow) infoWindow.close();
-                  var lines =
-                    '<strong>' + name + '</strong>' +
-                    ((item.city || item.county) ? '<br>' + [item.city, item.county].filter(Boolean).join(" · ") : "") +
-                    (item.date ? '<br>' + fmtDate(item.date) : "") +
-                    (item.note ? '<br>' + item.note : "");
-                  infoWindow = new AMap.InfoWindow({
-                    content:
-                      '<div style="font:14px/1.6 system-ui,-apple-system,\'Noto Sans SC\',sans-serif;padding:2px 4px;color:#222;">' +
-                      lines + '</div>',
-                    offset: new AMap.Pixel(0, -32)
-                  });
-                  infoWindow.open(map, [lng, lat]);
-                });
-              }
 
               // 点击标记弹出信息窗（名称 + 行政区划 + 日期 + 备注）
               m.on("click", function () {
@@ -269,11 +216,11 @@
                 map: map
               });
               // 交通方式：plan.transportation 非空时，显示在该点前面进入线路的正中间
-              if (segTo.transportation && TransportLabel) {
+              if (segTo.transportation) {
                 try {
                   var midLng = (segFrom.lng + segTo.lng) / 2;
                   var midLat = (segFrom.lat + segTo.lat) / 2;
-                  var lbl = new TransportLabel(new AMap.LngLat(midLng, midLat), segTo.transportation);
+                  var lbl = makeTransportLabel(new AMap.LngLat(midLng, midLat), segTo.transportation);
                   map.add(lbl);
                 } catch (e) {
                   console.warn("交通标签创建失败（不影响点位/路线）:", e && e.message);
@@ -348,10 +295,9 @@
     }
   </script>
 
-  <!-- 高德 JS API：key 已内置，若要换 key 直接改下面 URL 里的 key 参数。
-       DOMOverlay 是插件，必须显式声明加载，否则 AMap.DOMOverlay 为 undefined -->
+  <!-- 高德 JS API：key 已内置，若要换 key 直接改下面 URL 里的 key 参数。 -->
   <script crossorigin="anonymous"
-    src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&plugin=AMap.DOMOverlay&callback=onAMapLoaded"></script>
+    src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"></script>
 
   <!-- 其余块：从 16 种莫兰迪古典色随机上色（地图块除外） -->
   <script>
