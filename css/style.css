@@ -1,6 +1,6 @@
 /* 无边框矩形块：一块块拼接，移动优先
-   配色：64 种大兴安岭秋景（落叶松金 / 白桦橙 / 枫叶赤 / 樟松绿）
-   每个块由 JS 随机挂一个 .c1~.c64 色类 */
+   配色：16 种中国古典色（莫兰迪灰调）
+   每个块由 JS 随机挂一个 .c1~.c16 色类 */
 * {
   margin: 0;
   padding: 0;
@@ -22,8 +22,6 @@ body {
   font-size: clamp(32px, 12vw, 64px);
   font-weight: 700;
   letter-spacing: .04em;
-  border-radius: 0;
-  /* 无边框、无圆角 */
   background: #E0A93B;
   /* 默认底色，JS 加载前不闪黑 */
 }
@@ -31,18 +29,14 @@ body {
 /* 首块：竖版 4:3 地图画框，高度随内容自适应，无上下留白（下面直接接下一块） */
 .block-first {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 0;
   background: #E8E3D8;
 }
 
-/* 地图画框：竖版 4:3，宽度贴满屏幕，高度按 3:4 自动算（边框已取消） */
+/* 地图画框：竖版 4:3，宽度贴满屏幕，高度按 3:4 自动算 */
 #map-frame {
   position: relative;
   width: 100%;
-  max-width: none;
   /* 宽:高 = 3:4（竖版 4:3），高度由宽度自动算出 */
   aspect-ratio: 3 / 4;
   box-sizing: border-box;
@@ -50,7 +44,7 @@ body {
 
 #map {
   position: absolute;
-  /* 关键：绝对定位填满画框内容区（贴着内边框），
+  /* 关键：绝对定位填满画框内容区，
      这样地图脚本初始化时 #map 就拥有非零尺寸，
      避免高德因容器 0 尺寸把坐标换算成 NaN（Pixel(NaN,NaN)） */
   top: 0;
@@ -60,7 +54,7 @@ body {
   z-index: 1;
 }
 
-/* 缺失点位报错条：plan 里有名字、但 place.json 里找不到坐标时显示 */
+/* 无效坐标报错条：plan 里 coordinate 缺失/格式异常时显示 */
 #map-err {
   position: absolute;
   left: 12px;
@@ -96,332 +90,30 @@ body {
   line-height: 1.7;
 }
 
-/* ===== 64 种秋景配色 =====
-   16 种中国古典色(莫兰迪灰调) x 4 轮（.c1~.c16 一组，.c17 起循环） */
-
-.c1 {
-  background: #AF8D4E;
-  color: #FFFFFF
-}
-
-.c2 {
-  background: #4A5259;
-  color: #FFFFFF
-}
-
-.c3 {
-  background: #B98C5E;
-  color: #FFFFFF
-}
-
-.c4 {
-  background: #7F4147;
-  color: #FFFFFF
-}
-
-.c5 {
-  background: #D9D4C8;
-  color: #1A1A1A
-}
-
-.c6 {
-  background: #A77E51;
-  color: #FFFFFF
-}
-
-.c7 {
-  background: #7B7A5F;
-  color: #FFFFFF
-}
-
-.c8 {
-  background: #A2614A;
-  color: #FFFFFF
-}
-
-.c9 {
-  background: #9D8B50;
-  color: #FFFFFF
-}
-
-.c10 {
-  background: #4C5A47;
-  color: #FFFFFF
-}
-
-.c11 {
-  background: #97602F;
-  color: #FFFFFF
-}
-
-.c12 {
-  background: #C0A86B;
-  color: #1A1A1A
-}
-
-.c13 {
-  background: #6E5540;
-  color: #FFFFFF
-}
-
-.c14 {
-  background: #CFC298;
-  color: #1A1A1A
-}
-
-.c15 {
-  background: #46504B;
-  color: #FFFFFF
-}
-
-.c16 {
-  background: #6E7F80;
-  color: #FFFFFF
-}
-
-.c17 {
-  background: #AF8D4E;
-  color: #FFFFFF
-}
-
-.c18 {
-  background: #4A5259;
-  color: #FFFFFF
-}
-
-.c19 {
-  background: #B98C5E;
-  color: #FFFFFF
-}
-
-.c20 {
-  background: #7F4147;
-  color: #FFFFFF
-}
-
-.c21 {
-  background: #D9D4C8;
-  color: #1A1A1A
-}
-
-.c22 {
-  background: #A77E51;
-  color: #FFFFFF
-}
-
-.c23 {
-  background: #7B7A5F;
-  color: #FFFFFF
-}
-
-.c24 {
-  background: #A2614A;
-  color: #FFFFFF
-}
-
-.c25 {
-  background: #9D8B50;
-  color: #FFFFFF
-}
-
-.c26 {
-  background: #4C5A47;
-  color: #FFFFFF
-}
-
-.c27 {
-  background: #97602F;
-  color: #FFFFFF
-}
-
-.c28 {
-  background: #C0A86B;
-  color: #1A1A1A
-}
-
-.c29 {
-  background: #6E5540;
-  color: #FFFFFF
-}
-
-.c30 {
-  background: #CFC298;
-  color: #1A1A1A
-}
-
-.c31 {
-  background: #46504B;
-  color: #FFFFFF
-}
-
-.c32 {
-  background: #6E7F80;
-  color: #FFFFFF
-}
-
-.c33 {
-  background: #AF8D4E;
-  color: #FFFFFF
-}
-
-.c34 {
-  background: #4A5259;
-  color: #FFFFFF
-}
-
-.c35 {
-  background: #B98C5E;
-  color: #FFFFFF
-}
-
-.c36 {
-  background: #7F4147;
-  color: #FFFFFF
-}
-
-.c37 {
-  background: #D9D4C8;
-  color: #1A1A1A
-}
-
-.c38 {
-  background: #A77E51;
-  color: #FFFFFF
-}
-
-.c39 {
-  background: #7B7A5F;
-  color: #FFFFFF
-}
-
-.c40 {
-  background: #A2614A;
-  color: #FFFFFF
-}
-
-.c41 {
-  background: #9D8B50;
-  color: #FFFFFF
-}
-
-.c42 {
-  background: #4C5A47;
-  color: #FFFFFF
-}
-
-.c43 {
-  background: #97602F;
-  color: #FFFFFF
-}
-
-.c44 {
-  background: #C0A86B;
-  color: #1A1A1A
-}
-
-.c45 {
-  background: #6E5540;
-  color: #FFFFFF
-}
-
-.c46 {
-  background: #CFC298;
-  color: #1A1A1A
-}
-
-.c47 {
-  background: #46504B;
-  color: #FFFFFF
-}
-
-.c48 {
-  background: #6E7F80;
-  color: #FFFFFF
-}
-
-.c49 {
-  background: #AF8D4E;
-  color: #FFFFFF
-}
-
-.c50 {
-  background: #4A5259;
-  color: #FFFFFF
-}
-
-.c51 {
-  background: #B98C5E;
-  color: #FFFFFF
-}
-
-.c52 {
-  background: #7F4147;
-  color: #FFFFFF
-}
-
-.c53 {
-  background: #D9D4C8;
-  color: #1A1A1A
-}
-
-.c54 {
-  background: #A77E51;
-  color: #FFFFFF
-}
-
-.c55 {
-  background: #7B7A5F;
-  color: #FFFFFF
-}
-
-.c56 {
-  background: #A2614A;
-  color: #FFFFFF
-}
-
-.c57 {
-  background: #9D8B50;
-  color: #FFFFFF
-}
-
-.c58 {
-  background: #4C5A47;
-  color: #FFFFFF
-}
-
-.c59 {
-  background: #97602F;
-  color: #FFFFFF
-}
-
-.c60 {
-  background: #C0A86B;
-  color: #1A1A1A
-}
-
-.c61 {
-  background: #6E5540;
-  color: #FFFFFF
-}
-
-.c62 {
-  background: #CFC298;
-  color: #1A1A1A
-}
-
-.c63 {
-  background: #46504B;
-  color: #FFFFFF
-}
-
-.c64 {
-  background: #6E7F80;
-  color: #FFFFFF
-}
+/* ===== 16 种中国古典色（莫兰迪灰调）=====
+   藤黄/黛蓝/杏黄/胭脂/月白/黄栌/竹青/柿红/
+   秋香/松花绿/琥珀/缃色/赭石/鹅黄/黛绿/天青 */
+
+.c1 { background: #AF8D4E; color: #FFFFFF }
+.c2 { background: #4A5259; color: #FFFFFF }
+.c3 { background: #B98C5E; color: #FFFFFF }
+.c4 { background: #7F4147; color: #FFFFFF }
+.c5 { background: #D9D4C8; color: #1A1A1A }
+.c6 { background: #A77E51; color: #FFFFFF }
+.c7 { background: #7B7A5F; color: #FFFFFF }
+.c8 { background: #A2614A; color: #FFFFFF }
+.c9 { background: #9D8B50; color: #FFFFFF }
+.c10 { background: #4C5A47; color: #FFFFFF }
+.c11 { background: #97602F; color: #FFFFFF }
+.c12 { background: #C0A86B; color: #1A1A1A }
+.c13 { background: #6E5540; color: #FFFFFF }
+.c14 { background: #CFC298; color: #1A1A1A }
+.c15 { background: #46504B; color: #FFFFFF }
+.c16 { background: #6E7F80; color: #FFFFFF }
 
 /* 加块：复制 <section class="block">文字</section>，JS 会自动随机上色 */
 
-/* 点位标记：红圆点 + 名称标签（MarkerView content） */
+/* 点位标记：灰圆点 + 名称标签（MarkerView content） */
 .map-dot-wrap {
   display: flex;
   flex-direction: column;
