@@ -131,7 +131,7 @@
                 content:
                   '<div class="map-dot-wrap">' +
                   '<span class="map-dot-name" style="background:' + dayColor + '">' + name + '</span>' +
-                  '<span class="map-dot"></span>' +
+                  '<span class="map-dot' + (item.arrived ? ' arrived' : '') + '"></span>' +
                   '</div>',
                 map: map
               });
@@ -155,7 +155,8 @@
               dayPoints.push({
                 lng: lng,
                 lat: lat,
-                date: String(item.date || "").slice(0, 6)   // 归一化为 YYMMDD
+                date: String(item.date || "").slice(0, 6),   // 归一化为 YYMMDD
+                arrived: item.arrived === true
               });
             } catch (e) {
               console.warn("点位「" + name + "」创建失败:", e && e.message);
@@ -170,16 +171,21 @@
             }
             console.error("无效坐标点位汇总：", bad);
           }
-          // 路线：按 plan 顺序一条普通折线，统一默认颜色（不分段、不做贝塞尔曲线）
+          // 路线：按 plan 顺序分段绘制——默认灰色（未走）；从 arrived 点位出发的下一段为蓝色（已走）
           if (dayPoints.length > 1) {
-            var linePath = dayPoints.map(function (dp) { return [dp.lng, dp.lat]; });
-            new AMap.Polyline({
-              path: linePath,
-              strokeWeight: 3,
-              strokeOpacity: 0.85,
-              zIndex: 5,
-              map: map
-            });
+            var ROUTE_TODO = "#9aa0a6";   // 未走：灰
+            var ROUTE_DONE = "#1677ff";   // 已走：蓝
+            for (var si = 0; si < dayPoints.length - 1; si++) {
+              var segFrom = dayPoints[si], segTo = dayPoints[si + 1];
+              new AMap.Polyline({
+                path: [[segFrom.lng, segFrom.lat], [segTo.lng, segTo.lat]],
+                strokeColor: segFrom.arrived ? ROUTE_DONE : ROUTE_TODO,
+                strokeWeight: segFrom.arrived ? 4 : 3,
+                strokeOpacity: 0.85,
+                zIndex: segFrom.arrived ? 6 : 5,
+                map: map
+              });
+            }
           }
           // 区域叠加：直接用 path.json 预加载的 county_areas 边界画半透明多边形
           // （数据由 Python 从阿里 DataV GeoAtlas 按 adcode 预取，不再运行时查询 DistrictSearch）

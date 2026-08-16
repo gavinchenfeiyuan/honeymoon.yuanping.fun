@@ -2,6 +2,7 @@
     "plan": [
         {
             "name": "通辽机场",
+            "arrived": true,
             "coordinate": "122.2062,43.559157",
             "city": "通辽市",
             "county": "科尔沁区",
@@ -11,6 +12,7 @@
         },
         {
             "name": "通辽站",
+            "arrived": true,
             "coordinate": "122.271613,43.60436",
             "city": "通辽市",
             "county": "科尔沁区",
@@ -18,6 +20,7 @@
         },
         {
             "name": "白城站",
+            "arrived": false,
             "coordinate": "122.86446,45.61756",
             "city": "白城市",
             "county": "洮北区",
@@ -25,6 +28,7 @@
         },
         {
             "name": "白城市",
+            "arrived": false,
             "coordinate": "122.838102,45.620131",
             "city": "白城市",
             "county": "洮北区",
@@ -32,6 +36,7 @@
         },
         {
             "name": "加格达奇区",
+            "arrived": false,
             "coordinate": "124.139742,50.408822",
             "city": "大兴安岭地区",
             "county": "加格达奇区",
@@ -39,6 +44,7 @@
         },
         {
             "name": "小白山",
+            "arrived": false,
             "coordinate": "123.630357,51.697956",
             "city": "大兴安岭地区",
             "county": "呼玛县",
@@ -46,6 +52,7 @@
         },
         {
             "name": "呼中镇",
+            "arrived": false,
             "coordinate": "123.586412,52.033515",
             "city": "大兴安岭地区",
             "county": "呼玛县",
@@ -53,6 +60,7 @@
         },
         {
             "name": "漠河市",
+            "arrived": false,
             "coordinate": "122.539313,52.972465",
             "city": "大兴安岭地区",
             "county": "漠河市",
@@ -60,6 +68,7 @@
         },
         {
             "name": "北极星广场",
+            "arrived": false,
             "coordinate": "122.525962,52.971057",
             "city": "大兴安岭地区",
             "county": "漠河市",
@@ -67,6 +76,7 @@
         },
         {
             "name": "漠河舞厅",
+            "arrived": false,
             "coordinate": "122.535339,52.97089",
             "city": "大兴安岭地区",
             "county": "漠河市",
@@ -75,6 +85,7 @@
         },
         {
             "name": "神龙湾",
+            "arrived": false,
             "coordinate": "122.774973,53.362592",
             "city": "大兴安岭地区",
             "county": "漠河市",
@@ -83,6 +94,7 @@
         },
         {
             "name": "北红村",
+            "arrived": false,
             "coordinate": "123.071938,53.504549",
             "city": "大兴安岭地区",
             "county": "漠河市",
@@ -90,6 +102,7 @@
         },
         {
             "name": "北极村",
+            "arrived": false,
             "coordinate": "122.361818,53.487098",
             "city": "大兴安岭地区",
             "county": "漠河市",
@@ -97,6 +110,7 @@
         },
         {
             "name": "满归镇",
+            "arrived": false,
             "coordinate": "122.056184,52.041",
             "city": "呼伦贝尔市",
             "county": "根河市",
@@ -104,6 +118,7 @@
         },
         {
             "name": "伊克萨玛",
+            "arrived": false,
             "coordinate": "121.810405,52.142048",
             "city": "呼伦贝尔市",
             "county": "根河市",
@@ -112,6 +127,7 @@
         },
         {
             "name": "莫尔道嘎",
+            "arrived": false,
             "coordinate": "120.673537,51.337518",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -119,6 +135,7 @@
         },
         {
             "name": "老鹰嘴",
+            "arrived": false,
             "coordinate": "120.033336,51.49149",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -127,6 +144,7 @@
         },
         {
             "name": "临江村",
+            "arrived": false,
             "coordinate": "119.99724,51.411277",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -134,6 +152,7 @@
         },
         {
             "name": "神仙坡",
+            "arrived": false,
             "coordinate": "119.973726,51.401687",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -141,6 +160,7 @@
         },
         {
             "name": "室韦",
+            "arrived": false,
             "coordinate": "119.902146,51.339555",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -149,6 +169,7 @@
         },
         {
             "name": "九卡",
+            "arrived": false,
             "coordinate": "119.622849,50.974151",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -156,6 +177,7 @@
         },
         {
             "name": "七卡",
+            "arrived": false,
             "coordinate": "119.534748,50.744193",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -163,6 +185,7 @@
         },
         {
             "name": "乌兰山",
+            "arrived": false,
             "coordinate": "119.451961,50.603812",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -170,6 +193,7 @@
         },
         {
             "name": "五卡",
+            "arrived": false,
             "coordinate": "119.265157,50.437788",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -177,6 +201,7 @@
         },
         {
             "name": "黑山头",
+            "arrived": false,
             "coordinate": "119.541564,50.220851",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -184,6 +209,7 @@
         },
         {
             "name": "额尔古纳",
+            "arrived": false,
             "coordinate": "120.180506,50.243102",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -191,6 +217,7 @@
         },
         {
             "name": "额尔古纳客运站",
+            "arrived": false,
             "coordinate": "120.177528,50.254174",
             "city": "呼伦贝尔市",
             "county": "额尔古纳市",
@@ -198,6 +225,7 @@
         },
         {
             "name": "莫日格勒河",
+            "arrived": false,
             "coordinate": "119.779039,49.511658",
             "city": "呼伦贝尔市",
             "county": "陈巴尔虎旗",
@@ -205,6 +233,7 @@
         },
         {
             "name": "海拉尔区",
+            "arrived": false,
             "coordinate": "119.824542,49.234715",
             "city": "呼伦贝尔市",
             "county": "海拉尔区",
@@ -212,6 +241,7 @@
         },
         {
             "name": "满洲里市",
+            "arrived": false,
             "coordinate": "117.379134,49.59862",
             "city": "呼伦贝尔市",
             "county": "满洲里市",
@@ -219,6 +249,7 @@
         },
         {
             "name": "呼伦湖",
+            "arrived": false,
             "coordinate": "117.621712,49.331025",
             "city": "呼伦贝尔市",
             "county": "新巴尔虎右旗",
@@ -226,6 +257,7 @@
         },
         {
             "name": "成吉思汗拴马桩",
+            "arrived": false,
             "coordinate": "117.125013,48.92279",
             "city": "呼伦贝尔市",
             "county": "新巴尔虎右旗",
@@ -233,6 +265,7 @@
         },
         {
             "name": "齐齐哈尔市",
+            "arrived": false,
             "coordinate": "123.918193,47.354892",
             "city": "齐齐哈尔市",
             "county": "建华区",
@@ -241,6 +274,7 @@
         },
         {
             "name": "齐齐哈尔站",
+            "arrived": false,
             "coordinate": "123.995988,47.340409",
             "city": "齐齐哈尔市",
             "county": "铁锋区",
@@ -249,6 +283,7 @@
         },
         {
             "name": "哈尔滨站",
+            "arrived": false,
             "coordinate": "126.63269,45.761621",
             "city": "哈尔滨市",
             "county": "南岗区",
@@ -258,6 +293,7 @@
         },
         {
             "name": "哈尔滨市",
+            "arrived": false,
             "coordinate": "126.53505,45.802981",
             "city": "哈尔滨市",
             "county": "松北区",

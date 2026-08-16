@@ -172,3 +172,12 @@ body {
   border-radius: 50%;
   background: #777;
 }
+
+/* 已到达（plan.arrived === true）：圆点放大 + 蓝色光环 */
+.map-dot.arrived {
+  width: 10px;
+  height: 10px;
+  margin-top: 1px;
+  background: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, .28);
+}
