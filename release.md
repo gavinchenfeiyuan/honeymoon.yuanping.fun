@@ -154,3 +154,9 @@
 - **county 边界改为预加载**：不再运行时查询高德 DistrictSearch（连续查询会回调丢失/限流，导致部分区域缺失）
 - `path.json` 新增 `county_areas`（15 个 county 的边界环数组，抽稀到 ≤1500 点/环，约 284KB），由 Python 从阿里 DataV GeoAtlas 按 adcode 预取（`geo.datav.aliyun.com/areas_v3/bound/{adcode}.json`）
 - `index.html` 直接读取 `county_areas` 画 Polygon，无异步查询、100% 覆盖
+
+## v0.45
+
+- **county 边界独立成文件 `county.json`**（216KB，紧凑格式），`path.json` 恢复为纯行程数据（7KB）
+- 新增脚本 **`fetch_county.py`**（项目根目录）：自动读取 `path.json` 去重出 county → 从 DataV GeoAtlas 拉边界 → 覆盖写 `county.json`。用法 `python fetch_county.py`
+- `index.html` 并行加载 `path.json` + `county.json`；`county.json` 缺失时降级为不画区域（不阻塞地图）
