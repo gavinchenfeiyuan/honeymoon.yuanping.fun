@@ -390,3 +390,13 @@
   - 关闭方式 `infoWindow.close()` → `popMarker.setMap(null)`
   - 定位：`anchor:"bottom-center"` + `offset: new AMap.Pixel(0, 24)`，卡片浮于点位上方
   - 无高德默认皮肤/外框，卡片纯自定义 DOM；点击卡片本身不触发地图 click 关闭（marker 拦截冒泡）
+
+## v0.78
+
+- **信息窗区域合并 + 点位时间行顺序**：
+  - 城市/区域合并为一行（`county · city`，county 在前，点号分隔），`filter(Boolean)` 自动跳过空值
+  - 点位名字下时间行改为「日期 时间」顺序（原 `10:45 9/12` → `9/12 10:45`）
+- **玻璃参数均衡化 + 点位毛玻璃**：
+  - `.iw-card` 白底 `.14/.08/.12`、tint `12%`、blur `10px`、反光条 `.22`（地图透 + 字稳 + 玻璃质感平衡）
+  - 点位名称 `.map-dot-name`、时间行 `.map-dot-time` 改毛玻璃胶囊（低透白底 + `blur(8px)`，名称加白描边），与 infoWindow 玻璃风格统一
+  - 玻璃注释精简为「行上方直接标注可改参数」（白底/tint/blur/反光条）
