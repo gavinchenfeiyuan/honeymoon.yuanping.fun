@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.52</div>
+      <div id="ver-tag">v0.54</div>
     </div>
   </section>
 
@@ -186,13 +186,13 @@
                 zIndex: segFrom.arrived ? 6 : 5,
                 map: map
               });
-              // 交通方式：plan.transportation 非空时，显示在该段路线的正中间
-              if (segFrom.transportation) {
+              // 交通方式：plan.transportation 非空时，显示在该点前面进入线路的正中间
+              if (segTo.transportation) {
                 new AMap.Marker({
                   position: [(segFrom.lng + segTo.lng) / 2, (segFrom.lat + segTo.lat) / 2],
                   anchor: "center",
                   zIndex: 7,
-                  content: '<span class="map-transport">' + segFrom.transportation + '</span>',
+                  content: '<span class="map-transport">' + segTo.transportation + '</span>',
                   map: map
                 });
               }
