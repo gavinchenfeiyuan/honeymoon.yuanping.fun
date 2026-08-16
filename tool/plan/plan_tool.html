@@ -304,23 +304,16 @@
       color: var(--num);
     }
 
-    /* 操作列 & 删除按钮 */
+    /* 操作列 & 删除/定位/新增按钮 */
     thead th.op {
-      width: 44px;
+      width: 92px;
     }
 
     td.op {
-      width: 44px;
+      width: 92px;
       text-align: center;
+      white-space: nowrap;
     }
-
-    /* 只读列（location） */
-    thead th.ro,
-    td.ro {
-      background: #f8f9fb;
-      color: var(--text-dim);
-    }
-    td.ro { cursor: default; }
 
     .del-btn {
       border: none;
@@ -328,7 +321,7 @@
       color: #c9cdd4;
       font-size: 13px;
       line-height: 1;
-      padding: 3px 6px;
+      padding: 3px 5px;
       border-radius: 5px;
       cursor: pointer;
       transition: all .12s;
@@ -337,6 +330,45 @@
     .del-btn:hover {
       color: #fff;
       background: var(--err);
+    }
+
+    .loc-btn {
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      line-height: 1;
+      padding: 3px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .loc-btn:hover {
+      background: var(--accent-soft);
+      filter: saturate(1.2);
+    }
+
+    .loc-btn.busy {
+      opacity: .5;
+      cursor: progress;
+      pointer-events: none;
+    }
+
+    .add-row-btn {
+      border: none;
+      background: transparent;
+      color: var(--ok);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 3px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .add-row-btn:hover {
+      background: rgba(22, 163, 74, .12);
     }
 
     /* 单元格编辑 */
@@ -460,7 +492,6 @@
 
   <header>
     <div class="logo">🥤 蜜月行程表 <span class="dot">path.json</span></div>
-    <input id="amapKey" type="text" spellcheck="false" placeholder="高德 Key（选填，保存时自动查新地点坐标）">
     <button id="saveBtn" class="btn btn-primary">💾 保存</button>
   </header>
 
@@ -474,7 +505,7 @@
       <div id="emptyState">
         <div class="icon">🗺️</div>
         <div class="tip">
-          本工具展示 <code>path.json</code> 中的 <code>plan</code> 和 <code>fact</code> 两个表格。<br>
+          本工具展示 <code>path.json</code> 中的 <code>plan</code> 表格。<br>
           当前未加载成功 —— 请用本地 HTTP 服务器运行本页面：<br>
           <code>python -m http.server 8080</code> 然后访问 <code>http://localhost:8080/plan_tool.html</code><br>
           或点击下方按钮手动选择文件：<br>
@@ -487,15 +518,13 @@
   <details id="help">
     <summary>💡 使用说明</summary>
     <div class="help-body">
-      自动加载同目录 <code>path.json</code>，将 <code>plan</code>（行程计划）和 <code>fact</code>（实际行程）渲染为两张表格。<br>
-      行可拖拽排序；每行 ✕ 删除；每张表可「新建行」；「保存」执行三步：<br>
-      ① 校验每行 <code>name</code>/<code>date</code> 是否存在（缺失则提示并中止）<br>
-      ② 检查 <code>name</code> 是否在 <code>place.json</code> 中存在，不存在的自动创建（填高德 Key 自动查经纬度，查不到的留空待手动补）<br>
-      ③ 按当前顺序写回 <code>path.json</code>，相邻两行 date 不同且中间无 overnight 时自动插入 <code>overnight</code><br>
-      保存需 Chrome/Edge：每次保存都会弹出对话框，由你自行选择保存位置（覆盖 <code>path.json</code> / <code>place.json</code>
+      自动加载同目录 <code>path.json</code>，将 <code>plan</code>（行程计划）渲染为表格。<br>
+      行可拖拽排序；每行 ✕ 删除；表格可「新建行」；<code>date</code> 显示为 月/日、<code>time</code> 显示为 时/分，保存时合并回 <code>YYMMDD</code>/<code>HHMM</code>。<br>
+      保存不做校验，按当前顺序与键序直接写回 <code>path.json</code>（缩进 1 空格，末尾带换行）。<br>
+      保存需 Chrome/Edge：每次保存都会弹出对话框，由你自行选择保存位置（覆盖 <code>path.json</code>
       即可）；其他浏览器降级为下载。推荐运行方式：在该目录执行 <code>python -m http.server 8080</code>，访问
       <code>http://localhost:8080/plan_tool.html</code>。<br>
-      每张表格上方内嵌高德地图：按表格行顺序标点并连线，行拖拽/编辑/增删后自动刷新。地图需高德 <b>JS API 类型</b> 的 Key
+      每张表格上方内嵌高德地图：按表格行 <code>coordinate</code> 顺序标点并连线，行拖拽/编辑/增删后自动刷新。地图需高德 <b>JS API 类型</b> 的 Key
       （已内置，顶部输入框可覆盖，填写后刷新页面生效）。<br>
       <b>局域网手机访问（iPhone/iPad）：</b>在项目根目录用 <code>python tool/plan/serve.py</code> 启动服务器，
       然后用手机 Safari 访问 <code>http://&lt;服务器IP&gt;:8080/tool/plan/plan_tool.html</code>。
@@ -522,42 +551,37 @@
       return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    /* ============ 加载 path.json / place.json ============ */
+    /* ============ 加载 path.json ============ */
     const DEFAULT_AMAP_KEY = "2a061f322f0cbaba1b5bf0a796fc422c";
     const DEFAULT_AMAP_JSCODE = "8fa56ff20532321e38b42a31b32ed125";
 
     let originalJson = null;
-    let cachedPlace = [];     // place.json 的 place 数组
-    let placeMap = new Map(); // name -> place 条目（供 location 列查询）
-    let amapKey = localStorage.getItem("amap_key") || DEFAULT_AMAP_KEY;
+    let amapKey = DEFAULT_AMAP_KEY;          // 地图用 JS API Key（内置）
     let amapJscode = DEFAULT_AMAP_JSCODE;   // 安全密钥（securityJsCode）
-    const amapKeyInput = $("amapKey");
-    amapKeyInput.value = amapKey;
-    amapKeyInput.placeholder = "高德 Key（已内置，可覆盖）";
-    amapKeyInput.addEventListener("change", () => {
-      amapKey = amapKeyInput.value.trim();
-      localStorage.setItem("amap_key", amapKey);
-    });
+
+    // 高德 Web 服务 Key（geocode 地理编码用）：由 serve.py 从根目录 amap_key.txt 提供，
+    // 非服务器环境（file:// 直接打开）拿不到则静默，点击「定位」时再提示。
+    let webAmapKey = "";
+    async function loadWebAmapKey() {
+      try {
+        const res = await fetch("/api/amap-key", { cache: "no-store" });
+        if (!res.ok) return;
+        const d = await res.json();
+        webAmapKey = (d && d.key) ? String(d.key).trim() : "";
+      } catch (_) { webAmapKey = ""; }
+    }
+    loadWebAmapKey();
 
     async function loadPath() {
-      setStatus("正在加载 path.json / place.json …");
+      setStatus("正在加载 path.json …");
       try {
         const res = await fetch("../../path.json", { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const text = await res.text();
         const data = JSON.parse(text);
         originalJson = data;
-        // 顺带加载 place.json（供 location 列显示与保存检查）
-        try {
-          const pres = await fetch("../../place.json", { cache: "no-store" });
-          if (pres.ok) {
-            const pdata = JSON.parse(await pres.text());
-            cachedPlace = Array.isArray(pdata.place) ? pdata.place : [];
-            placeMap = new Map(cachedPlace.map(p => [p.name, p]));
-          }
-        } catch (_) { /* place.json 加载失败不阻塞表格展示 */ }
         render(data, "path.json");
-        setStatus("✅ path.json 已加载" + (cachedPlace.length ? "（place.json " + cachedPlace.length + " 个地点）" : ""), "ok");
+        setStatus("✅ path.json 已加载", "ok");
       } catch (e) {
         setStatus("❌ 加载失败（" + e.message + "）—— 请用本地服务器运行或点击「选择文件」", "err");
         emptyState.classList.remove("hidden");
@@ -565,7 +589,7 @@
     }
 
     /* ============ 渲染表格 ============ */
-    const TABLE_TITLES = { plan: "🗺️ plan · 行程计划", fact: "✅ fact · 实际行程" };
+    const TABLE_TITLES = { plan: "🗺️ plan · 行程计划" };
 
     function render(data, name) {
       // 销毁旧地图实例
@@ -581,7 +605,7 @@
       if (tables.length === 0) {
         content.innerHTML =
           '<div style="padding:40px;text-align:center;color:var(--text-dim);font-size:13px;">' +
-          '未找到 plan / fact 数组（顶层键：' + esc(keys.join(", ") || "无") + "）</div>";
+          '未找到 plan 数组（顶层键：' + esc(keys.join(", ") || "无") + "）</div>";
         return;
       }
       for (const k of tables) {
@@ -589,14 +613,66 @@
       }
     }
 
+    /* date/time → 日/时/分 虚拟列（仅展示层，path.json 仍存 YYMMDD / HHMM；月份固定为 09，不显示不编辑） */
+    const FIXED_MONTH = "09";
+    const FIXED_YEAR = "26";   // 年份固定 26（2026）；旧 date 缺年份时自动补齐，保证 date 恒为 6 位 YYMMDD
+    const DT_EXPAND = { "date": ["日"], "time": ["时", "分"] };
+    const DT_VIRTUAL_FIELDS = new Set(["日", "时", "分"]);   // 虚拟列：空值需保留，用于区分「用户清空」与「未编辑」
+    function expandDateTimeFields(fields) {
+      const out = [];
+      fields.forEach(f => {
+        if (DT_EXPAND[f]) out.push(...DT_EXPAND[f]);
+        else out.push(f);
+      });
+      return out;
+    }
+    // 从 row 取某虚拟列的值：date=260912 → 日=12；time=1045 → 时=10 分=45
+    function dtCellValue(row, f) {
+      const d = String(row && row.date || "");
+      const t = String(row && row.time || "");
+      if (f === "日") return d.length >= 6 ? d.slice(4, 6) : "";
+      if (f === "时") return t.length >= 4 ? t.slice(0, 2) : "";
+      if (f === "分") return t.length >= 4 ? t.slice(2, 4) : "";
+      return row ? row[f] : undefined;
+    }
+    // 虚拟列合并回 date/time：date=YY+09+日(6位)；time=时+分(4位)。年份固定 26、月份固定 09，旧值缺位自动补齐，保证 date 恒为 6 位，避免同日分组错乱
+    function joinDateTime(obj, orig) {
+      const oldDate = orig && orig.date !== undefined ? String(orig.date) : "";
+      const oldTime = orig && orig.time !== undefined ? String(orig.time) : "";
+      // 年份：旧值有 6 位取前 2 位；否则补默认 FIXED_YEAR（26）。月份固定 FIXED_MONTH（09）
+      const yy = oldDate.length >= 6 ? oldDate.slice(0, 2) : FIXED_YEAR;
+      const mo = FIXED_MONTH;   // 月份固定 09
+      const da = obj["日"] !== undefined ? String(obj["日"]) : (oldDate.length >= 6 ? oldDate.slice(4, 6) : "");
+      const hh = obj["时"] !== undefined ? String(obj["时"]) : (oldTime.length >= 4 ? oldTime.slice(0, 2) : "");
+      const mm = obj["分"] !== undefined ? String(obj["分"]) : (oldTime.length >= 4 ? oldTime.slice(2, 4) : "");
+      const m2 = pad2(mo), d2 = pad2(da);
+      if (da !== "" && d2) obj.date = yy + m2 + d2;   // 仅在填写了「日」时写 date（月固定 09，年从旧值兜底）
+      if (hh !== "" && mm !== "") {
+        const h2 = pad2(hh), m02 = pad2(mm);
+        if (h2 && m02) obj.time = h2 + m02;
+      }
+      delete obj["月"]; delete obj["日"]; delete obj["时"]; delete obj["分"];
+    }
+    function pad2(s) { return String(s).length < 2 ? "0" + String(s) : String(s); }
+
     function buildTableCard(key, rows) {
       // 过滤 overnight 占位行
       rows = rows.filter(r => !(r && r.name === "overnight"));
 
       // 字段并集（按出现顺序）
-      const fields = [];
+      let fields = [];
       const seen = new Set();
       rows.forEach(r => { if (r && typeof r === "object") Object.keys(r).forEach(f => { if (!seen.has(f)) { seen.add(f); fields.push(f); } }); });
+      // 排除由 fetch_county.py 维护的列（仅隐藏显示，数据保留并由读取时按 name 补齐）
+      const HIDDEN_FIELDS = ["city", "county"];
+      fields = fields.filter(f => !HIDDEN_FIELDS.includes(f));
+      // plan 表固定列顺序：name→explicit→arrived→coordinate→transportation→date→time→note（city/county 隐藏）
+      if (key === "plan") {
+        const ORDER = ["name", "explicit", "arrived", "coordinate", "transportation", "date", "time", "note"];
+        fields = ORDER.filter(f => fields.includes(f))
+          .concat(fields.filter(f => !ORDER.includes(f)));
+        fields = expandDateTimeFields(fields);
+      }
 
       const card = document.createElement("div");
       card.className = "table-card";
@@ -605,14 +681,6 @@
       const head = document.createElement("div");
       head.className = "card-head";
       head.innerHTML = esc(TABLE_TITLES[key]) + ' <span class="count">' + rows.length + " 行</span>";
-      const actions = document.createElement("div");
-      actions.className = "actions";
-      const addBtn = document.createElement("button");
-      addBtn.className = "btn btn-xs";
-      addBtn.textContent = "＋ 新建行";
-      addBtn.addEventListener("click", () => addRow(tbody, fields));
-      actions.appendChild(addBtn);
-      head.appendChild(actions);
       card.appendChild(head);
 
       // 地图容器（head 下方、表格上方）
@@ -620,7 +688,7 @@
       mapWrap.className = "map-wrap";
       const mapTip = document.createElement("div");
       mapTip.className = "map-tip";
-      mapTip.textContent = amapKey ? "地图加载中…" : "未配置高德 Key，地图不可用（在顶部输入框填写 JS API Key 后刷新）";
+      mapTip.textContent = amapKey ? "地图加载中…" : "地图不可用";
       mapWrap.appendChild(mapTip);
       card.appendChild(mapWrap);
 
@@ -634,10 +702,6 @@
       thIdx.className = "idx";
       thIdx.textContent = "#";
       trH.appendChild(thIdx);
-      const thLoc = document.createElement("th");
-      thLoc.className = "ro";
-      thLoc.textContent = "location";
-      trH.appendChild(thLoc);
       for (const f of fields) {
         const th = document.createElement("th");
         th.textContent = f;
@@ -657,16 +721,9 @@
         tdIdx.className = "idx";
         tdIdx.textContent = i + 1;
         tr.appendChild(tdIdx);
-        // location 只读列（从 place.json 查询，不可编辑）
-        const tdLoc = document.createElement("td");
-        tdLoc.className = "ro";
-        const loc = r && r.name ? (placeMap.get(r.name) || {}).location : "";
-        tdLoc.textContent = loc || "";
-        if (!loc) tdLoc.classList.add("empty");
-        tr.appendChild(tdLoc);
         for (const f of fields) {
           const td = document.createElement("td");
-          const v = r ? r[f] : undefined;
+          const v = (key === "plan" && DT_EXPAND) ? dtCellValue(r, f) : (r ? r[f] : undefined);
           if (f === "explicit" || f === "arrived") {
             // 布尔字段：用勾选框渲染
             td.classList.add("bool-cell");
@@ -695,6 +752,8 @@
         const tdOp = document.createElement("td");
         tdOp.className = "op";
         tdOp.appendChild(makeDelBtn(tr));
+        tdOp.appendChild(makeAddBtn(tbody, fields, tr));
+        if (key === "plan") tdOp.appendChild(makeLocBtn(tr));
         tr.appendChild(tdOp);
         tbody.appendChild(tr);
       });
@@ -748,8 +807,9 @@
 
       const points = [];
       readTable(key).forEach(r => {
-        const p = r.name ? placeMap.get(r.name) : null;
-        if (p && p.lng && p.lat) points.push({ name: r.name, lng: p.lng, lat: p.lat });
+        // 用行内 coordinate（"lng,lat"）画点，不再依赖 place.json
+        const c = String(r.coordinate || "").split(",").map(parseFloat);
+        if (c.length >= 2 && !isNaN(c[0]) && !isNaN(c[1])) points.push({ name: r.name, lng: c[0], lat: c[1] });
       });
       if (!points.length) return;
 
@@ -797,9 +857,8 @@
           delete td.dataset.editing;
           td.textContent = v;
           td.classList.toggle("empty", v === "");
-          // name 修改后联动刷新本行 location 只读列与地图
+          // name 修改后联动刷新地图
           if (td.dataset.field === "name") {
-            updateRowLocation(td.closest("tr"));
             updateMap(td.closest(".table-card").dataset.key);
           }
         };
@@ -817,17 +876,85 @@
       });
     }
 
-    /* name → place.location 只读列联动刷新 */
-    function updateRowLocation(tr) {
-      const tdLoc = tr.querySelector("td.ro");
-      if (!tdLoc) return;
-      const name = (tr.querySelector('td[data-field="name"]') || {}).textContent || "";
-      const loc = name ? (placeMap.get(name) || {}).location : "";
-      tdLoc.textContent = loc || "";
-      tdLoc.classList.toggle("empty", !loc);
+    /* ============ 行删除 / 新建行 ============ */
+    // 用 name 调用高德 geocode 地理编码（JSONP 跨域），返回 "lng,lat" 字符串；失败 resolve(null)
+    function geoLocate(name) {
+      return new Promise(resolve => {
+        if (!webAmapKey) { resolve(null); return; }
+        const cbName = "__amap_geo_" + Math.random().toString(36).slice(2);
+        const timeout = setTimeout(() => { cleanup(); resolve(null); }, 15000);
+        function cleanup() {
+          clearTimeout(timeout);
+          const s = document.getElementById(cbName);
+          if (s) s.remove();
+          delete window[cbName];
+        }
+        window[cbName] = data => {
+          cleanup();
+          try {
+            const loc = data && data.geocodes && data.geocodes[0] && data.geocodes[0].location;
+            resolve(loc || null);
+          } catch (_) { resolve(null); }
+        };
+        const s = document.createElement("script");
+        s.id = cbName;
+        s.src = "https://restapi.amap.com/v3/geocode/geo?address=" + encodeURIComponent(name)
+          + "&key=" + encodeURIComponent(webAmapKey) + "&callback=" + cbName;
+        s.onerror = () => { cleanup(); resolve(null); };
+        document.head.appendChild(s);
+      });
     }
 
-    /* ============ 行删除 / 新建行 ============ */
+    // 每行「定位」按钮：用 name 查经纬度，填入该行 coordinate 单元格并刷新地图
+    function makeLocBtn(tr) {
+      const btn = document.createElement("button");
+      btn.className = "loc-btn";
+      btn.textContent = "📍";
+      btn.title = "用高德按此行 name 查询经纬度填入 coordinate";
+      let busy = false;
+      btn.addEventListener("click", async () => {
+        if (busy) return;
+        const row = tr.querySelector("td[data-field='name']");
+        const name = row ? row.textContent.trim() : "";
+        if (!name) { setStatus("⚠️ 该行没有 name，无法定位", "warn"); return; }
+        if (!webAmapKey) {
+          setStatus("⚠️ 未取到高德 Web Key（需通过 serve.py 启动），无法定位", "warn");
+          return;
+        }
+        busy = true;
+        btn.classList.add("busy");
+        btn.textContent = "…";
+        setStatus("正在定位：" + name + " …");
+        const loc = await geoLocate(name);
+        btn.classList.remove("busy");
+        btn.textContent = "📍";
+        busy = false;
+        if (!loc) { setStatus("⚠️ 未定位到：" + name, "warn"); return; }
+        const coords = tr.querySelector("td[data-field='coordinate']");
+        if (coords) {
+          coords.textContent = loc;
+          coords.classList.remove("empty");
+        }
+        const card = tr.closest(".table-card");
+        if (card) updateMap(card.dataset.key);
+        setStatus("✅ " + name + " → " + loc, "ok");
+      });
+      return btn;
+    }
+
+    // 每行「＋」按钮：在该行下方插入新行
+    function makeAddBtn(tbody, fields, tr) {
+      const btn = document.createElement("button");
+      btn.className = "add-row-btn";
+      btn.textContent = "＋";
+      btn.title = "在本行下方新建一行";
+      btn.addEventListener("click", () => {
+        addRow(tbody, fields, tr);
+        btn.blur();
+      });
+      return btn;
+    }
+
     function makeDelBtn(tr) {
       const btn = document.createElement("button");
       btn.className = "del-btn";
@@ -842,16 +969,13 @@
       return btn;
     }
 
-    function addRow(tbody, fields) {
+    function addRow(tbody, fields, afterTr) {
       const tr = document.createElement("tr");
       tr.draggable = true;
       const tdIdx = document.createElement("td");
       tdIdx.className = "idx";
-      tdIdx.textContent = tbody.children.length + 1;
+      tdIdx.textContent = afterTr ? Array.prototype.indexOf.call(tbody.children, afterTr) + 2 : tbody.children.length + 1;
       tr.appendChild(tdIdx);
-      const tdLoc = document.createElement("td");
-      tdLoc.className = "ro empty";
-      tr.appendChild(tdLoc);
       for (const f of fields) {
         const td = document.createElement("td");
         td.className = "empty";
@@ -873,8 +997,12 @@
       const tdOp = document.createElement("td");
       tdOp.className = "op";
       tdOp.appendChild(makeDelBtn(tr));
+      tdOp.appendChild(makeAddBtn(tbody, fields, tr));
+      const _cardKey = (afterTr && afterTr.closest(".table-card")) ? afterTr.closest(".table-card").dataset.key : (tr.closest(".table-card") && tr.closest(".table-card").dataset.key);
+      if (_cardKey === "plan") tdOp.appendChild(makeLocBtn(tr));
       tr.appendChild(tdOp);
-      tbody.appendChild(tr);
+      if (afterTr) afterTr.after(tr); else tbody.appendChild(tr);
+      renumber(tbody);
       updateCardCount(tr.closest(".table-card"));
       tr.scrollIntoView({ block: "nearest" });
       updateMap(tr.closest(".table-card").dataset.key);
@@ -888,12 +1016,77 @@
     }
 
     /* ============ 保存（写回 path.json） ============ */
+    // 数字校验：只接受 1~2 位数字（"时/分"为 2 位、"日"可为 1~2 位），非法返回 false
+    function isDigits(s, minLen, maxLen) {
+      return /^[0-9]+$/.test(String(s)) && String(s).length >= minLen && String(s).length <= maxLen;
+    }
+    // 单行校验（在合并回 date/time 之前，用含 日/时/分 虚拟列的原始 obj）：
+    //   返回 null 表示通过，否则返回错误描述字符串
+    function validatePlanRow(obj, orig, rowNo) {
+      const name = obj.name !== undefined ? String(obj.name).trim() : "";
+      if (!name) return "第 " + rowNo + " 行：name 为空";
+
+      // 日必填：每个点都必须填「日」
+      const da = obj["日"] !== undefined ? String(obj["日"]).trim() : "";
+      if (da === "") return "第 " + rowNo + " 行（" + name + "）：日不能为空，必须填写";
+
+      // coordinate 必填 + 格式：经纬度 "lng,lat"，lng∈[-180,180]、lat∈[-90,90]（地图点位依赖）
+      const coord = obj.coordinate !== undefined ? String(obj.coordinate).trim() : "";
+      if (coord === "") return "第 " + rowNo + " 行（" + name + "）：coordinate 不能为空，必须填写经纬度";
+      const m = coord.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if (!m) return "第 " + rowNo + " 行（" + name + "）：coordinate 格式错误（应为 经度,纬度，如 122.2,43.5）";
+      const lng = parseFloat(m[1]), lat = parseFloat(m[2]);
+      if (lng < -180 || lng > 180) return "第 " + rowNo + " 行（" + name + "）：经度超出 -180~180";
+      if (lat < -90 || lat > 90) return "第 " + rowNo + " 行（" + name + "）：纬度超出 -90~90";
+
+      // 时/分 成对：一个写了另一个必须写，都空才允许
+      const hh = obj["时"] !== undefined ? String(obj["时"]).trim() : "";
+      const mm = obj["分"] !== undefined ? String(obj["分"]).trim() : "";
+      if ((hh !== "") !== (mm !== "")) {
+        return "第 " + rowNo + " 行（" + name + "）：时、分须成对填写，不能只填一个";
+      }
+
+      // 格式校验：日 = 1~2 位数字；时/分 = 2 位数字（都写了才查）
+      if (da !== "" && !isDigits(da, 1, 2)) {
+        return "第 " + rowNo + " 行（" + name + "）：日格式错误（应为 1~2 位数字）";
+      }
+      if (hh !== "") {
+        if (!isDigits(hh, 2, 2)) return "第 " + rowNo + " 行（" + name + "）：时格式错误（应为 2 位数字，如 10）";
+        if (parseInt(hh, 10) > 23) return "第 " + rowNo + " 行（" + name + "）：时超出 0~23";
+        if (!isDigits(mm, 2, 2)) return "第 " + rowNo + " 行（" + name + "）：分格式错误（应为 2 位数字，如 45）";
+        if (parseInt(mm, 10) > 59) return "第 " + rowNo + " 行（" + name + "）：分超出 0~59";
+      }
+      if (da !== "" && parseInt(da, 10) > 31) {
+        return "第 " + rowNo + " 行（" + name + "）：日超出 1~31";
+      }
+      return null;
+    }
+    // 表级校验：同日（date 相同）内必须有至少一行 explicit=true
+    // 返回 null 表示通过，否则返回错误描述
+    function validatePlanSameDay(rows) {
+      const byDay = new Map();   // date -> { rows:[idx], explicit:bool }
+      rows.forEach((r, i) => {
+        const d = r && r.date !== undefined ? String(r.date) : "";
+        if (!d) return;   // 无 date 的行不参与分组校验
+        if (!byDay.has(d)) byDay.set(d, { idxs: [], explicit: false });
+        const g = byDay.get(d);
+        g.idxs.push(i + 1);
+        if (r.explicit === true) g.explicit = true;
+      });
+      for (const [d, g] of byDay) {
+        if (!g.explicit) {
+          return "第 " + g.idxs.join("、") + " 行（date=" + d + "）：同日须至少勾选一个 explicit";
+        }
+      }
+      return null;
+    }
     function readTable(key) {
       const card = content.querySelector('.table-card[data-key="' + key + '"]');
       if (!card) return [];
       const tbody = card.querySelector("tbody");
       const fields = Array.from(card.querySelectorAll("thead th:not(.idx):not(.op):not(.ro)")).map(th => th.textContent);
-      return Array.from(tbody.children).map(tr => {
+      const planRaw = [];   // 保存合并前的原始行（含 日/时/分 虚拟列），供校验
+      const rows = Array.from(tbody.children).map(tr => {
         const tds = tr.querySelectorAll("td:not(.idx):not(.op):not(.ro)");
         const obj = {};
         tds.forEach((td, i) => {
@@ -905,39 +1098,60 @@
             return;
           }
           const v = td.textContent;
-          if (v !== "") obj[f] = v;
+          // 虚拟列（日/时/分）空值也要写入 ""，让 joinDateTime 能识别「用户清空」而非「未编辑」；
+          // 普通字段保持空不写（避免多余空字段）
+          if (v !== "" || (key === "plan" && DT_VIRTUAL_FIELDS.has(f))) obj[f] = v;
         });
+        // 补齐被隐藏的 city/county（由 fetch_county.py 阶段1逆地理编码维护，保存时不可丢失）
+        if (key === "plan") {
+          const orig = originalJson && Array.isArray(originalJson.plan)
+            ? originalJson.plan.find(p => p && p.name === obj.name && p.name !== "overnight") : undefined;
+          if (orig) {
+            if (obj.city === undefined && orig.city !== undefined) obj.city = orig.city;
+            if (obj.county === undefined && orig.county !== undefined) obj.county = orig.county;
+          }
+          planRaw.push(Object.assign({}, obj));   // 深拷贝暂存（含 日/时/分），避免 joinDateTime 修改 obj 时连带污染
+          // 月/日/时/分 虚拟列合并回 date/time（保留年份；用户改某格则更新对应段）
+          joinDateTime(obj, orig);
+        }
         return obj;
       });
+      // plan 表在合并后做表级校验（同日须有 explicit）
+      if (key === "plan") {
+        const sameDayErr = validatePlanSameDay(rows);
+        if (sameDayErr) throw new Error(sameDayErr);
+        // 单行校验（时/分成对、格式）在合并前更准确，这里对原始行执行
+        planRaw.forEach((o, i) => {
+          const err = validatePlanRow(o, null, i + 1);
+          if (err) throw new Error(err);
+        });
+      }
+      return rows;
     }
 
     /* ============ 保存 ============ */
-    /* 保存：不做任何校验，直接写回 path.json */
-    /* 相邻两行 date 不同且中间无 overnight → 插入 overnight */
-    function withOvernight(rows) {
-      const out = [];
-      for (const r of rows) {
-        const prev = out[out.length - 1];
-        if (prev && prev.name !== "overnight" &&
-          prev.date !== undefined && r.date !== undefined &&
-          prev.date !== r.date) {
-          out.push({ name: "overnight" });
-        }
-        out.push(r);
-      }
-      return out;
-    }
+    /* 保存：不做任何校验，直接写回 path.json（不再自动插入 overnight） */
+    function withOvernight(rows) { return rows; }
 
     function buildPathData() {
       const data = Object.assign({}, originalJson || {});
-      data.plan = withOvernight(readTable("plan"));
-      data.fact = readTable("fact");
+      data.plan = withOvernight(readTable("plan")).map(orderPlanKeys);
+      // 仅写回 plan；实际行程表已移除
       return data;
+    }
+
+    // plan 行键写回顺序：name→explicit→arrived→coordinate→city→county→transportation→date→time→note（未列出的追加末尾）
+    function orderPlanKeys(row) {
+      const ORDER = ["name", "explicit", "arrived", "coordinate", "city", "county", "transportation", "date", "time", "note"];
+      const out = {};
+      ORDER.forEach(k => { if (row[k] !== undefined) out[k] = row[k]; });
+      Object.keys(row).forEach(k => { if (!(k in out)) out[k] = row[k]; });
+      return out;
     }
 
     /* 写文件：优先服务器接口（局域网手机访问场景）→ 桌面浏览器保存对话框 → 下载 */
     async function writeJsonFile(suggestedName, obj) {
-      const json = JSON.stringify(obj, null, 4);
+      const json = JSON.stringify(obj, null, 1) + "\n";
 
       // 1) 服务器模式：同源 POST /api/save（serve.py 提供）
       try {
@@ -966,10 +1180,17 @@
     }
 
     async function saveAll() {
-      // 简化保存：不做任何校验，直接写回 path.json（plan 自动补 overnight）
+      // 保存前校验（name 非空 / 同日须有 explicit / 时分成对 / 格式），失败则中止不写文件
+      let pathData;
       try {
-        const name = await writeJsonFile("path.json", buildPathData());
-        setStatus("✅ path.json 已保存（自动补齐 overnight）→ " + name, "ok");
+        pathData = buildPathData();
+      } catch (e) {
+        setStatus("⚠️ 未保存：" + e.message, "warn");
+        return;
+      }
+      try {
+        const name = await writeJsonFile("path.json", pathData);
+        setStatus("✅ path.json 已保存 → " + name, "ok");
       } catch (e) {
         if (e.name !== "AbortError") setStatus("path.json 保存失败：" + e.message, "err");
         return;

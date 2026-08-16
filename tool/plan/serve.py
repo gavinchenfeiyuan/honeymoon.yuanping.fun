@@ -26,6 +26,28 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=ROOT, **kwargs)
 
+    def do_GET(self):
+        # /api/amap-key：返回高德 Web 服务 Key（从根目录 amap_key.txt 读取，避免 key 入库/硬编码）
+        if self.path == "/api/amap-key":
+            key_path = os.path.join(ROOT, "amap_key.txt")
+            if not os.path.exists(key_path):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(json.dumps({"key": ""}).encode("utf-8"))
+                return
+            with open(key_path, "r", encoding="utf-8") as f:
+                key = f.read().strip()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(json.dumps({"key": key}).encode("utf-8"))
+            return
+        # 其余路径交给静态文件处理器
+        return super().do_GET()
+
     def do_POST(self):
         if self.path != "/api/save":
             self.send_error(404, "not found")
