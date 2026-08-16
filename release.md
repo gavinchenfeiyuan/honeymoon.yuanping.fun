@@ -148,3 +148,9 @@
 - **按 county 叠加行政区区域**：遍历 plan 去重 county（15 个），用高德 `AMap.DistrictSearch` 查询边界，`AMap.Polygon` 半透明填充（填充 15%、边框 60%），每个 county 从 16 色随机取色（不撞色，淡化 55%）
 - 边界点数抽稀到 ≤2000 点（实测额尔古纳市原始 6187 点，防移动端卡顿）
 - 层级：区域 zIndex 1 < 路线 5 < 标记 10
+
+## v0.44
+
+- **county 边界改为预加载**：不再运行时查询高德 DistrictSearch（连续查询会回调丢失/限流，导致部分区域缺失）
+- `path.json` 新增 `county_areas`（15 个 county 的边界环数组，抽稀到 ≤1500 点/环，约 284KB），由 Python 从阿里 DataV GeoAtlas 按 adcode 预取（`geo.datav.aliyun.com/areas_v3/bound/{adcode}.json`）
+- `index.html` 直接读取 `county_areas` 画 Polygon，无异步查询、100% 覆盖

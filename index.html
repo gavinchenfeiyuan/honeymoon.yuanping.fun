@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.43</div>
+      <div id="ver-tag">v0.44</div>
     </div>
   </section>
 
@@ -173,75 +173,47 @@
               map: map
             });
           }
-          // 区域叠加：按 county 查询行政区边界，画半透明多边形（异步，不抢标记/路线层级）
-          (function addCountyAreas() {
-            var counties = [];
-            var seenC = {};
-            plan.forEach(function (it) {
-              var c = it && it.county;
-              if (c && !seenC[c]) { seenC[c] = true; counties.push(c); }
-            });
-            if (!counties.length) return;
-            AMap.plugin("AMap.DistrictSearch", function () {
-              if (typeof AMap.DistrictSearch !== "function") return;
-              var ds = new AMap.DistrictSearch({ subdistrict: 0, extensions: "all", level: "district" });
-              var usedC = {};
-              var i = 0;
-              function countyColor() {
-                // 从 16 色取未用色，淡化 55%
-                var bg = null, guard = 0;
-                while (!bg || usedC[bg]) {
-                  var tmp = document.createElement("div");
-                  tmp.className = "c" + (Math.floor(Math.random() * 16) + 1);
-                  tmp.style.display = "none";
-                  document.body.appendChild(tmp);
-                  bg = getComputedStyle(tmp).backgroundColor;
-                  document.body.removeChild(tmp);
-                  if (++guard > 30) break;
-                }
-                usedC[bg] = true;
-                return fadeWithWhite(bg, 0.55);
+          // 区域叠加：直接用 path.json 预加载的 county_areas 边界画半透明多边形
+          // （数据由 Python 从阿里 DataV GeoAtlas 按 adcode 预取，不再运行时查询 DistrictSearch）
+          (function drawCountyAreas() {
+            // county_areas 在 path.json 中是紧凑 JSON 字符串（省体积），需 JSON.parse
+            var countyAreas = {};
+            try { countyAreas = JSON.parse((data && data.county_areas) || "{}") || {}; }
+            catch (e) { console.warn("county_areas 解析失败:", e); }
+            var countyNames = Object.keys(countyAreas);
+            if (!countyNames.length) return;
+            var usedC = {};
+            function countyColor() {
+              // 从 16 色取未用色，淡化 55%
+              var bg = null, guard = 0;
+              while (!bg || usedC[bg]) {
+                var tmp = document.createElement("div");
+                tmp.className = "c" + (Math.floor(Math.random() * 16) + 1);
+                tmp.style.display = "none";
+                document.body.appendChild(tmp);
+                bg = getComputedStyle(tmp).backgroundColor;
+                document.body.removeChild(tmp);
+                if (++guard > 30) break;
               }
-              function simplify(pts, maxN) {
-                if (pts.length <= maxN) return pts;
-                var step = Math.ceil(pts.length / maxN);
-                var out = [];
-                for (var j = 0; j < pts.length; j += step) out.push(pts[j]);
-                if (out[out.length - 1] !== pts[pts.length - 1]) out.push(pts[pts.length - 1]);
-                return out;
-              }
-              function next() {
-                if (i >= counties.length) return;
-                var cn = counties[i++];
-                ds.search(cn, function (status, result) {
-                  if (status === "complete" && result && result.districtList && result.districtList.length) {
-                    var d = null;
-                    for (var k = 0; k < result.districtList.length; k++) {
-                      if (result.districtList[k].name === cn) { d = result.districtList[k]; break; }
-                    }
-                    if (!d) d = result.districtList[0];
-                    if (d && d.boundaries && d.boundaries.length) {
-                      var fill = countyColor();
-                      d.boundaries.forEach(function (ring) {
-                        new AMap.Polygon({
-                          path: simplify(ring, 2000),
-                          strokeColor: fill,
-                          strokeWeight: 1,
-                          strokeOpacity: 0.6,
-                          fillColor: fill,
-                          fillOpacity: 0.15,
-                          zIndex: 1,
-                          map: map
-                        });
-                      });
-                    } else {
-                      console.warn("county 边界未获取:", cn, status);
-                    }
-                  }
-                  next();
+              usedC[bg] = true;
+              return fadeWithWhite(bg, 0.55);
+            }
+            countyNames.forEach(function (cn) {
+              var area = countyAreas[cn];
+              if (!area || !area.boundaries || !area.boundaries.length) return;
+              var fill = countyColor();
+              area.boundaries.forEach(function (ring) {
+                new AMap.Polygon({
+                  path: ring,
+                  strokeColor: fill,
+                  strokeWeight: 1,
+                  strokeOpacity: 0.6,
+                  fillColor: fill,
+                  fillOpacity: 0.15,
+                  zIndex: 1,
+                  map: map
                 });
-              }
-              next();
+              });
             });
           })();
           if (markers.length) {
