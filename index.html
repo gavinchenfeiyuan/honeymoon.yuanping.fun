@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.51</div>
+      <div id="ver-tag">v0.52</div>
     </div>
   </section>
 
@@ -156,7 +156,8 @@
                 lng: lng,
                 lat: lat,
                 date: String(item.date || "").slice(0, 6),   // 归一化为 YYMMDD
-                arrived: item.arrived === true
+                arrived: item.arrived === true,
+                transportation: String(item.transportation || "").trim()
               });
             } catch (e) {
               console.warn("点位「" + name + "」创建失败:", e && e.message);
@@ -185,6 +186,16 @@
                 zIndex: segFrom.arrived ? 6 : 5,
                 map: map
               });
+              // 交通方式：plan.transportation 非空时，显示在该段路线的正中间
+              if (segFrom.transportation) {
+                new AMap.Marker({
+                  position: [(segFrom.lng + segTo.lng) / 2, (segFrom.lat + segTo.lat) / 2],
+                  anchor: "center",
+                  zIndex: 7,
+                  content: '<span class="map-transport">' + segFrom.transportation + '</span>',
+                  map: map
+                });
+              }
             }
           }
           // 区域叠加：直接用 path.json 预加载的 county_areas 边界画半透明多边形
