@@ -170,12 +170,13 @@ body {
   height: 3px;
   margin-top: 2px;
   border-radius: 50%;
-  background: #777;
+  background: #72B28E;   /* 未到：苍筤（夏·枫叶） */
 }
 
-/* 已到达（plan.arrived === true）：同风格，仅放大 */
+/* 已到达（plan.arrived === true）：枫叶红（秋·枫叶），放大一倍 */
 .map-dot.arrived {
   width: 6px;
   height: 6px;
   margin-top: 1px;
+  background: #B02F23;
 }

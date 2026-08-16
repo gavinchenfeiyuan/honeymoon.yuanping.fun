@@ -171,10 +171,10 @@
             }
             console.error("无效坐标点位汇总：", bad);
           }
-          // 路线：按 plan 顺序分段绘制——默认灰色（未走）；从 arrived 点位出发的下一段为蓝色（已走）
+          // 路线：按 plan 顺序分段绘制——未走为夏之绿（石绿），已走为秋之色（松霜绿）
           if (dayPoints.length > 1) {
-            var ROUTE_TODO = "#9aa0a6";   // 未走：灰
-            var ROUTE_DONE = "#1677ff";   // 已走：蓝
+            var ROUTE_TODO = "#1A7A50";   // 未走：石绿（夏·松叶）
+            var ROUTE_DONE = "#4A6656";   // 已走：松霜绿（秋·松叶）
             for (var si = 0; si < dayPoints.length - 1; si++) {
               var segFrom = dayPoints[si], segTo = dayPoints[si + 1];
               new AMap.Polyline({
