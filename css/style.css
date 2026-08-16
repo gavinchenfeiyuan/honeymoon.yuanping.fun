@@ -90,7 +90,9 @@ body {
   line-height: 1.7;
 }
 
-/* 网站大标题：地图宽 1/4 处竖排（颜色由 JS 从 16 色表随机，无阴影） */
+/* 网站大标题：地图宽 1/4 处竖排。
+   背景/文字色由 JS 随机挂 .cN 类（16 色莫兰迪表）；
+   text-shadow 偏移硬阴影模拟描边感 */
 #site-title {
   position: absolute;
   left: 25%;
@@ -102,6 +104,8 @@ body {
   font-weight: 900;
   letter-spacing: .14em;
   line-height: 1;
+  padding: 6px 3px;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, .3);
   pointer-events: none;
   user-select: none;
 }

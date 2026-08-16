@@ -18,7 +18,7 @@
       <div id="map-hint">地图加载中…<br />若长时间空白，请检查网络或高德 key 配置</div>
       <!-- 网站大标题：地图宽 1/4 处竖排 + 右侧竖排版本号 -->
       <div id="site-title">漠岭松桦</div>
-      <div id="ver-tag">v0.39</div>
+      <div id="ver-tag">v0.40</div>
     </div>
   </section>
 
@@ -169,26 +169,15 @@
 
   <!-- 其余块：从 16 种莫兰迪古典色随机上色（地图块除外） -->
   <script>
-    // 读取 .cN 类对应的背景色（用于矩形块随机上色）
-    function pickColor(n) {
-      var tmp = document.createElement("div");
-      tmp.className = "c" + n;
-      tmp.style.display = "none";
-      document.body.appendChild(tmp);
-      var col = getComputedStyle(tmp).backgroundColor;
-      document.body.removeChild(tmp);
-      return col;
-    }
-
     // 其余矩形块：随机上色
     document.querySelectorAll(".block:not(#map-block)").forEach(function (b) {
       var n = Math.floor(Math.random() * 16) + 1;
       b.classList.add("c" + n);
     });
 
-    // 网站大标题：文字颜色从 16 色配色表随机取（背景透明，保持水印感）
+    // 网站大标题：从 16 色配色表随机取整组配色（背景 + 文字色）
     var siteTitle = document.getElementById("site-title");
-    if (siteTitle) siteTitle.style.color = pickColor(Math.floor(Math.random() * 16) + 1);
+    if (siteTitle) siteTitle.classList.add("c" + (Math.floor(Math.random() * 16) + 1));
   </script>
 
 </body>
