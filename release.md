@@ -274,3 +274,43 @@
   - 根因：`AMap.DOMOverlay` 是 JSAPI **v1.4.x 旧版**概念，2.0（WebGL）核心类表里根本没有它，`&plugin=AMap.DOMOverlay` 也加载不到，`typeof AMap.DOMOverlay === "function"` 恒为 false → `TransportLabel` 一直是 null → 交通标签一个都没创建
   - 修复：改用 2.0 原生 `AMap.Text`（继承自 `AMap.Marker`），`anchor: "center"` 让文字几何中心精确落在路段中点，`zIndex: 20` 高于路线/标记确保不被遮挡，`clickable: false` + `pointer-events: none` 不拦触摸
   - 移除 API URL 的 `&plugin=AMap.DOMOverlay`，删除 `TransportLabel` 类定义与 `createDOM/draw` 逻辑
+
+## v0.64
+
+- **路线从折线改为平滑曲线**（Catmull-Rom 样条 → 三次贝塞尔，`AMap.BezierCurve`）：
+  - `smoothBezierPath` 把点位序列转成多段贝塞尔 path（控制点 = 相邻点张力 1/6），曲线穿过每个点位且段间平滑
+  - 按 `arrived` 连续段拆成两条曲线：已走段实线（松金 `#E0A62E`，线宽 4、zIndex 6），未走段虚线（林海翠 `#3A9268`，线宽 3、zIndex 5）
+  - 状态切换处断开：为保证曲线连续，新一组起点带入上一组末点
+  - 交通方式标签仍显示在原始两点坐标中点（不受曲线影响）
+  - 两点退化为直线段（单段无控制点，仍用 BezierCurve 容器）
+
+## v0.65
+
+- **撤回曲线，路线改为匹配高德驾车导航**（前端 JSONP，全段驾车路线）：
+  - 移除 v0.64 的 `smoothBezierPath` + `AMap.BezierCurve`，改回 `AMap.Polyline`
+  - 新增 `drawSegment(from, to, arrived)`：用 JSONP 调高德驾车 Web 服务 API（`/v3/direction/driving`），取 `route.paths[0].steps[].polyline` 拼接成真实道路坐标点画 `AMap.Polyline`
+  - 颜色/线宽/zIndex 规则与旧版一致（已走段松金实线 zIndex 6、未走段林海翠 zIndex 5），按 `from.arrived` 决定每段
+  - 逐段 JSONP 回调各自独立 `cbName`（随机后缀），成功渲染真实路网，失败或未填 key 回退两点直线
+  - **依赖「Web 服务」类型 key**：页面 JS API key 调 Web 服务 API 返回 `USERKEY_PLAT_NOMATCH`（10009），需在高德控制台单独创建「Web 服务」key，填入 `index.html` 的 `WEB_SERVICE_KEY` 变量；留空则全程回退直线
+
+## v0.66
+
+- **撤回 v0.65 JSONP 导航，改方案 B（圆角折线）**：
+  - 移除高德驾车 Web 服务调用与 `WEB_SERVICE_KEY` 依赖，不再需要额外 key
+  - 相邻点位连直线，`AMap.Polyline` 加 `lineJoin:'round'` + `lineCap:'round'` 让拐角圆滑（线自身不穿点，拐角处有轻微圆角偏移）
+  - 按 `arrived` 连续段分组着色（已走松金实线 zIndex 6、未走林海翠 zIndex 5），状态切换处断开重开一组，保证每段独立平滑
+
+## v0.67
+
+- **撤回 v0.66 圆角折线，改方案 D（平滑曲线，严格穿点）**：
+  - 恢复 Catmull-Rom → 三次贝塞尔：`smoothBezierPath(pts)` 控制点 = 相邻点张力 1/6，曲线精确穿过每个点位
+  - 用 `AMap.BezierCurve`，path 每段 = [控制点1, 控制点2, 终点]（3 组坐标），算法已用 node 验证穿点正确
+  - 按 `arrived` 连续段分组，状态切换处断开并带入上一组末点保证段间连续
+  - 已走段松金实线 zIndex 6、未走段林海翠 zIndex 5
+
+## v0.68
+
+- **撤回曲线，路线定格为简单直线折线**：
+  - 移除方案 D（Catmull-Rom 贝塞尔 + `AMap.BezierCurve`），代码已完全清理无残留
+  - 相邻点位连直线，`AMap.Polyline` 单条折线，按 `arrived` 连续段分组着色（已走松金实线 zIndex 6、未走林海翠 zIndex 5）
+  - 路线绘制至此定稿为直线，不再做曲线/圆角/导航

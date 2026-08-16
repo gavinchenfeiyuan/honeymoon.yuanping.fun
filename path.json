@@ -147,7 +147,7 @@
   },
   {
    "name": "莫尔道嘎",
-   "explicit": true,
+   "explicit": false,
    "arrived": false,
    "coordinate": "120.673537,51.337518",
    "city": "呼伦贝尔市",

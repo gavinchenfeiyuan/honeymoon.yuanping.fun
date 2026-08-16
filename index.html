@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.63</div>
+      <div id="ver-tag">v0.68</div>
     </div>
   </section>
 
@@ -201,26 +201,43 @@
             }
             console.error("无效坐标点位汇总：", bad);
           }
-          // 路线（落叶松）：夏=林海翠（未走），秋=松金（已走）
+          // 路线：简单直线折线。相邻点位连直线，按 arrived 连续段分组着色。
           if (dayPoints.length > 1) {
             var ROUTE_TODO = "#3A9268";   // 未走：林海翠（夏·落叶松）
             var ROUTE_DONE = "#E0A62E";   // 已走：松金（秋·落叶松）
+            // 把连续同 arrived 的点位收拢成一组 [[lng,lat],...]
+            var segs = [];
             for (var si = 0; si < dayPoints.length - 1; si++) {
-              var segFrom = dayPoints[si], segTo = dayPoints[si + 1];
+              var from = dayPoints[si], to = dayPoints[si + 1];
+              var arrived = from.arrived;
+              var last = segs[segs.length - 1];
+              if (last && last.arrived === arrived && last.pts[last.pts.length - 1][0] === from.lng &&
+                  last.pts[last.pts.length - 1][1] === from.lat) {
+                last.pts.push([to.lng, to.lat]);
+              } else {
+                segs.push({ arrived: arrived, pts: [[from.lng, from.lat], [to.lng, to.lat]] });
+              }
+            }
+            for (var gj = 0; gj < segs.length; gj++) {
+              var g = segs[gj];
               new AMap.Polyline({
-                path: [[segFrom.lng, segFrom.lat], [segTo.lng, segTo.lat]],
-                strokeColor: segFrom.arrived ? ROUTE_DONE : ROUTE_TODO,
-                strokeWeight: segFrom.arrived ? 4 : 3,
+                path: g.pts,
+                strokeColor: g.arrived ? ROUTE_DONE : ROUTE_TODO,
+                strokeWeight: g.arrived ? 4 : 3,
                 strokeOpacity: 0.85,
-                zIndex: segFrom.arrived ? 6 : 5,
+                strokeStyle: "solid",
+                zIndex: g.arrived ? 6 : 5,
                 map: map
               });
-              // 交通方式：plan.transportation 非空时，显示在该点前面进入线路的正中间
-              if (segTo.transportation) {
+            }
+            // 交通方式：plan.transportation 非空时，显示在该点前面进入线路的正中间
+            for (var ti = 0; ti < dayPoints.length - 1; ti++) {
+              var f2 = dayPoints[ti], t2 = dayPoints[ti + 1];
+              if (t2.transportation) {
                 try {
-                  var midLng = (segFrom.lng + segTo.lng) / 2;
-                  var midLat = (segFrom.lat + segTo.lat) / 2;
-                  var lbl = makeTransportLabel(new AMap.LngLat(midLng, midLat), segTo.transportation);
+                  var midLng = (f2.lng + t2.lng) / 2;
+                  var midLat = (f2.lat + t2.lat) / 2;
+                  var lbl = makeTransportLabel(new AMap.LngLat(midLng, midLat), t2.transportation);
                   map.add(lbl);
                 } catch (e) {
                   console.warn("交通标签创建失败（不影响点位/路线）:", e && e.message);
