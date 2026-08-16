@@ -242,3 +242,12 @@
   - 居中：CSS `transform: translate(-50%, -50%)`，由浏览器布局引擎保证几何中心精确落点，**与字体/emoji/测量时机/anchor-offset 换算全部无关**
   - 根因：v0.55~v0.58 反复跳坑在于 AMap 2.0 对 HTML content 的 anchor→offset 换算不透明、元素宽高取的是引擎测量值，与真实布局不一致
 - `.map-transport` 样式：`display:inline-block` → `position:absolute`，补 `pointer-events:none`（纯文字不拦触摸）
+
+## v0.60
+
+- **点位标签分级显示（小比例尺 county 名 / 放大 name）**：
+  - 每个 county 第一个出现的点为「代表点」，小比例尺（zoom 3~7）显示 **county 名**（`.map-dot-county`，加粗描边更醒目），其余同 county 点隐藏
+  - 放大到 zoom ≥ 8 显示具体 **name**（`.map-dot-name`），与 county 标签通过 Marker `zooms` 属性互斥切换
+  - 代表点两个 marker（county 标签 `zooms:[3,7]` / name 标签 `zooms:[8,20]`），同位置、不同 zoom 段各自显示
+- 解决同城密集点（漠河市区 3 点、额尔古纳市区 2 点、通辽/齐齐哈尔/哈尔滨市区各 2 点）小比例尺下标签糊成一团的问题
+- 代表点 county 标签点击同样弹信息窗（内容同 name 标签）

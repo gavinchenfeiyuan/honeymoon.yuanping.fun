@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.59</div>
+      <div id="ver-tag">v0.60</div>
     </div>
   </section>
 
@@ -138,6 +138,17 @@
           var infoWindow = null;
           var bad = [];       // coordinate 缺失/格式异常的点
           var dayPoints = []; // {lng,lat,date} 按 plan 顺序，用于绘制路线
+          // county 代表点：每个 county 第一个出现的点，小比例尺(zoom<8)只显示这些点的 county 名，
+          // 其余同 county 点小比例尺隐藏、放大(zoom>=8)再显示具体 name——避免同城密集点标签糊成一团
+          var countyRep = {};  // county -> true（是否已是代表点）
+          var repIndex = {};   // county -> 该 county 首个点位索引
+          plan.forEach(function (item, idx) {
+            var c = item && item.county;
+            if (c && !countyRep[c]) {
+              countyRep[c] = true;
+              repIndex[c] = idx;
+            }
+          });
           // 严格按 plan 顺序打点
           plan.forEach(function (item, i) {
             var name = item && item.name;
@@ -152,18 +163,56 @@
             try {
               // 地名背景框颜色：同 date 同色（淡化后）
               var dayColor = colorOf(String(item.date || "").slice(0, 6));
+              var isRep = item.county && repIndex[item.county] === i;   // 是否为该 county 代表点
+              var ZOOM_NAME_MIN = 8;   // zoom >= 8 显示具体点位名；< 8 显示 county 名（仅代表点）
+              var dotHtml = '<span class="map-dot' + (item.arrived ? ' arrived' : '') + '"></span>';
+
+              // ① 具体点位名标签：zoom >= 8 显示（圆点 + name）
               var m = new AMap.Marker({
                 position: [lng, lat],
                 anchor: "bottom-center",
                 zIndex: 10,
-                // 自定义标记：圆点 + 点位名称（背景框按日期同色）
+                zooms: [ZOOM_NAME_MIN, 20],
                 content:
                   '<div class="map-dot-wrap">' +
                   '<span class="map-dot-name" style="background:' + dayColor + '">' + name + '</span>' +
-                  '<span class="map-dot' + (item.arrived ? ' arrived' : '') + '"></span>' +
+                  dotHtml +
                   '</div>',
                 map: map
               });
+
+              // ② county 代表点标签：zoom < 8 显示（county 名 + 圆点），仅该 county 首个点
+              if (isRep) {
+                var cm = new AMap.Marker({
+                  position: [lng, lat],
+                  anchor: "bottom-center",
+                  zIndex: 9,
+                  zooms: [3, ZOOM_NAME_MIN - 1],
+                  content:
+                    '<div class="map-dot-wrap">' +
+                    '<span class="map-dot-county">' + item.county + '</span>' +
+                    dotHtml +
+                    '</div>',
+                  map: map
+                });
+                // county 标签点击同样弹信息窗
+                cm.on("click", function () {
+                  if (infoWindow) infoWindow.close();
+                  var lines =
+                    '<strong>' + name + '</strong>' +
+                    ((item.city || item.county) ? '<br>' + [item.city, item.county].filter(Boolean).join(" · ") : "") +
+                    (item.date ? '<br>' + fmtDate(item.date) : "") +
+                    (item.note ? '<br>' + item.note : "");
+                  infoWindow = new AMap.InfoWindow({
+                    content:
+                      '<div style="font:14px/1.6 system-ui,-apple-system,\'Noto Sans SC\',sans-serif;padding:2px 4px;color:#222;">' +
+                      lines + '</div>',
+                    offset: new AMap.Pixel(0, -32)
+                  });
+                  infoWindow.open(map, [lng, lat]);
+                });
+              }
+
               // 点击标记弹出信息窗（名称 + 行政区划 + 日期 + 备注）
               m.on("click", function () {
                 if (infoWindow) infoWindow.close();
