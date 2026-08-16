@@ -170,13 +170,13 @@ body {
   height: 3px;
   margin-top: 2px;
   border-radius: 50%;
-  background: #C6A15B;   /* 未到：秋香（夏·枫叶，含碧未红） */
+  background: #A84D9C;   /* 未到：鹃紫（夏·杜鹃） */
 }
 
-/* 已到达（plan.arrived === true）：霜叶红（秋·枫叶，霜叶红于二月花），放大一倍 */
+/* 已到达（plan.arrived === true）：五花红（秋·五花山），放大一倍 */
 .map-dot.arrived {
   width: 6px;
   height: 6px;
   margin-top: 1px;
-  background: #A53A2D;
+  background: #C2502A;
 }
