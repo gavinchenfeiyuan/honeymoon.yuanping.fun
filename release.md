@@ -97,6 +97,8 @@
 - 路线简化：取消按 date 分段同色、取消 Catmull-Rom 贝塞尔曲线（疑似未生效）、取消 64 色秋景库 + 灰蒙版配色
 - 路线改为一条普通折线（Polyline），统一使用高德默认颜色，线宽 3、不透明度 0.85
 
-## v0.32
+## v0.33
 
-- **iOS Safari 移动端兼容性修复**：36px 厚边框会遮挡高德版权信息（`amap-copyright`）和 Logo（`amap-logo`），CSS 统一把两者 `bottom` 上移 40px（>36px 边框），让版权完整显示在地图内、远离边框。桌面端不受影响
+- **取消地图厚边框**（原 36px 随机色边框）：iOS Safari 移动端边框遮挡高德版权文字（© 2026 AutoNavi - GS(2025)5996），且高德 2.0 版权/Logo 为 Canvas 绘制、CSS 无法移动，直接取消边框让版权贴底完整显示
+- 移除边框随机上色 JS 与版权上移 hack（`amap-copyright/amap-logo` 非 DOM 元素，hack 无效）
+- 地图块恢复为无边框整块，`#map-frame` 保留竖版 4:3

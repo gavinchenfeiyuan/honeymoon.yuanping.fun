@@ -38,16 +38,13 @@ body {
   background: #E8E3D8;
 }
 
-/* 地图画框：竖版 4:3，宽度贴满屏幕，高度按 3:4 自动算，颜色由 JS 随机取 */
+/* 地图画框：竖版 4:3，宽度贴满屏幕，高度按 3:4 自动算（边框已取消） */
 #map-frame {
-  /* 厚边框厚度，改这里即可 */
-  --map-border: 36px;
   position: relative;
   width: 100%;
   max-width: none;
   /* 宽:高 = 3:4（竖版 4:3），高度由宽度自动算出 */
   aspect-ratio: 3 / 4;
-  border: var(--map-border) solid transparent;
   box-sizing: border-box;
 }
 
@@ -447,12 +444,4 @@ body {
   margin-top: 2px;
   border-radius: 50%;
   background: #777;
-}
-
-/* ====== iOS Safari 移动端：36px 厚边框会遮挡高德版权/Logo ======
-   统一上移 40px（>36px 边框），让版权完整显示在地图内、远离边框。
-   桌面端不受影响（地图更大，版权靠右下角本来也不贴边）。 */
-.amap-copyright,
-.amap-logo {
-  bottom: 40px !important;
 }
