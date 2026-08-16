@@ -117,7 +117,7 @@ body {
 #ver-tag {
   position: absolute;
   left: 14px;
-  bottom: 12px;
+  bottom: 24px;
   z-index: 2;
   font: 700 12px/1 monospace;
   color: #000;
