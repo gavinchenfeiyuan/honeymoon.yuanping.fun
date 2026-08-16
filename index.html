@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.54</div>
+      <div id="ver-tag">v0.55</div>
     </div>
   </section>
 
@@ -190,9 +190,9 @@
               if (segTo.transportation) {
                 new AMap.Marker({
                   position: [(segFrom.lng + segTo.lng) / 2, (segFrom.lat + segTo.lat) / 2],
-                  anchor: "center",
+                  anchor: "top-left",
                   zIndex: 7,
-                  content: '<span class="map-transport">' + segTo.transportation + '</span>',
+                  content: '<div class="map-transport">' + segTo.transportation + '</div>',
                   map: map
                 });
               }
