@@ -16,9 +16,12 @@
       <div id="map"></div>
       <div id="map-err"></div>
       <div id="map-hint">地图加载中…<br />若长时间空白，请检查网络或高德 key 配置</div>
-      <!-- 网站大标题：地图宽 1/4 处竖排 + 右侧竖排版本号 -->
-      <div id="site-title">漠岭松桦</div>
-      <div id="ver-tag">v0.40</div>
+      <!-- 网站大标题：左下角印章式——漠岭/松桦两列竖排 + 版本号横排落款 -->
+      <div id="site-title">
+        <span class="st-col">漠岭</span>
+        <span class="st-col">松桦</span>
+      </div>
+      <div id="ver-tag">v0.41</div>
     </div>
   </section>
 
@@ -175,9 +178,22 @@
       b.classList.add("c" + n);
     });
 
-    // 网站大标题：从 16 色配色表随机取整组配色（背景 + 文字色）
+    // 网站大标题（印章式）：主体文字用配色 background 色，偏移阴影用配色 color 色
     var siteTitle = document.getElementById("site-title");
-    if (siteTitle) siteTitle.classList.add("c" + (Math.floor(Math.random() * 16) + 1));
+    if (siteTitle) {
+      var n = Math.floor(Math.random() * 16) + 1;
+      var tmp = document.createElement("div");
+      tmp.className = "c" + n;
+      tmp.style.display = "none";
+      document.body.appendChild(tmp);
+      var bg = getComputedStyle(tmp).backgroundColor;
+      var fg = getComputedStyle(tmp).color;
+      document.body.removeChild(tmp);
+      siteTitle.querySelectorAll(".st-col").forEach(function (el) {
+        el.style.color = bg;                    // 主体文字 = background 色
+        el.style.textShadow = "3px 3px 0 " + fg; // 偏移 = color 色
+      });
+    }
   </script>
 
 </body>

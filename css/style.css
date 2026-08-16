@@ -90,33 +90,35 @@ body {
   line-height: 1.7;
 }
 
-/* 网站大标题：地图宽 1/4 处竖排。
-   背景/文字色由 JS 随机挂 .cN 类（16 色莫兰迪表）；
-   text-shadow 偏移硬阴影模拟描边感 */
+/* 网站大标题：左下角印章式。
+   漠岭/松桦两列竖排（主体文字用配色 background 色，偏移阴影用配色 color 色，JS 设置） */
 #site-title {
   position: absolute;
-  left: 25%;
-  bottom: 52px;
+  left: 14px;
+  bottom: 40px;
   z-index: 2;
-  writing-mode: vertical-rl;
-  font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
-  font-size: clamp(44px, 14vw, 64px);
-  font-weight: 900;
-  letter-spacing: .14em;
-  line-height: 1;
-  padding: 6px 3px;
-  text-shadow: 4px 4px 0 rgba(0, 0, 0, .3);
+  display: flex;
+  gap: 6px;
   pointer-events: none;
   user-select: none;
 }
 
-/* 版本号：标题右侧，竖排，与标题底部对齐 */
+.st-col {
+  writing-mode: vertical-rl;
+  font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  font-size: clamp(36px, 11vw, 52px);
+  font-weight: 900;
+  letter-spacing: .1em;
+  line-height: 1;
+  padding: 4px 2px;
+}
+
+/* 版本号：横排落款（不旋转），黑色小字，位于两列下方 */
 #ver-tag {
   position: absolute;
-  left: calc(25% + 64px);
-  bottom: 52px;
+  left: 14px;
+  bottom: 12px;
   z-index: 2;
-  writing-mode: vertical-rl;
   font: 700 12px/1 monospace;
   color: #000;
   pointer-events: none;
