@@ -13,7 +13,7 @@
   <!-- 临时版本号：辨认变更用，确认后删掉这一行即可 -->
   <div id="ver"
     style="position:fixed;top:6px;right:8px;z-index:99999;font:12px/1.4 monospace;color:#222;background:rgba(255,255,255,.88);border:1px solid #999;border-radius:4px;padding:3px 6px;pointer-events:none;">
-    v0.29</div>
+    v0.31</div>
 
   <!-- 第一块：竖向 4:3 地图画框（行程点位 + 路线） -->
   <section class="block block-first" id="map-block">
@@ -52,53 +52,41 @@
       });
 
       var pointsAdded = false;
+      // YYMMDD -> "2026年9月12日"
+      function fmtDate(d) {
+        if (!d || d.length < 6) return "";
+        return (2000 + (+d.slice(0, 2))) + "年" + (+d.slice(2, 4)) + "月" + (+d.slice(4, 6)) + "日";
+      }
       function addPoints() {
         if (pointsAdded) return;   // 防止 complete 事件与兜底定时器重复添加
         pointsAdded = true;
-        // 并行加载：path.json 提供点位顺序，place.json 提供坐标
-        Promise.all([
-          fetch("path.json").then(function (r) {
-            if (!r.ok) throw new Error("path.json HTTP " + r.status);
-            return r.json();
-          }),
-          fetch("place.json").then(function (r) {
-            if (!r.ok) throw new Error("place.json HTTP " + r.status);
-            return r.json();
-          })
-        ]).then(function (results) {
-          var plan = (results[0] && results[0].plan) || [];
-          var places = (results[1] && results[1].place) || [];
+        // 只读取 path.json：plan 提供顺序 + 内嵌 coordinate（"经度,纬度"）
+        fetch("path.json").then(function (r) {
+          if (!r.ok) throw new Error("path.json HTTP " + r.status);
+          return r.json();
+        }).then(function (data) {
+          var plan = (data && data.plan) || [];
           if (!plan.length) { console.warn("path.json 没有 plan"); return; }
-          // name -> place 查找表
-          var placeMap = {};
-          places.forEach(function (p) {
-            if (p && p.name && !placeMap[p.name]) placeMap[p.name] = p;
-          });
           var markers = [];
           var infoWindow = null;
-          var missing = [];
-          var dayPoints = [];   // {lng,lat,date} 按 plan 顺序，用于按天分段着色
+          var bad = [];       // coordinate 缺失/格式异常的点
+          var dayPoints = []; // {lng,lat,date} 按 plan 顺序，用于按天分段着色
           // 严格按 plan 顺序打点
           plan.forEach(function (item, i) {
             var name = item && item.name;
-            if (!name || name === "overnight") return;   // 跳过住宿/占位项
-            var place = placeMap[name];
-            if (!place) {
-              missing.push(name);
-              console.error("plan 点位「" + name + "」(#" + i + ") 在 place.json 中未找到");
-              return;
-            }
-            var lng = Number(place.lng), lat = Number(place.lat);
+            if (!name) return;
+            var parts = String(item.coordinate || "").split(",");
+            var lng = Number(parts[0]), lat = Number(parts[1]);
             if (!isFinite(lng) || !isFinite(lat)) {
-              missing.push(name);
-              console.error("plan 点位「" + name + "」坐标无效", place);
+              bad.push(name);
+              console.error("plan 点位「" + name + "」(#" + i + ") coordinate 无效", item.coordinate);
               return;
             }
             try {
               var m = new AMap.Marker({
                 position: [lng, lat],
                 anchor: "bottom-center",
-                // 自定义标记：红圆点 + 点位名称（plan.name）
+                // 自定义标记：圆点 + 点位名称（plan.name）
                 content:
                   '<div class="map-dot-wrap">' +
                   '<span class="map-dot-name">' + name + '</span>' +
@@ -106,15 +94,18 @@
                   '</div>',
                 map: map
               });
-              // 点击标记弹出信息窗（显示名称 + 位置）
+              // 点击标记弹出信息窗（名称 + 行政区划 + 日期 + 备注）
               m.on("click", function () {
                 if (infoWindow) infoWindow.close();
+                var lines =
+                  '<strong>' + name + '</strong>' +
+                  ((item.city || item.county) ? '<br>' + [item.city, item.county].filter(Boolean).join(" · ") : "") +
+                  (item.date ? '<br>' + fmtDate(item.date) : "") +
+                  (item.note ? '<br>' + item.note : "");
                 infoWindow = new AMap.InfoWindow({
                   content:
                     '<div style="font:14px/1.6 system-ui,-apple-system,\'Noto Sans SC\',sans-serif;padding:2px 4px;color:#222;">' +
-                    '<strong>' + name + '</strong>' +
-                    (place.location ? '<br>' + place.location : '') +
-                    '</div>',
+                    lines + '</div>',
                   offset: new AMap.Pixel(0, -32)
                 });
                 infoWindow.open(map, [lng, lat]);
@@ -129,74 +120,23 @@
               console.warn("点位「" + name + "」创建失败:", e && e.message);
             }
           });
-          // 缺失点位：控制台报错 + 地图底部红字提示
-          if (missing.length) {
+          // 无效坐标点位：控制台报错 + 地图底部红字提示
+          if (bad.length) {
             var errEl = document.getElementById("map-err");
             if (errEl) {
               errEl.style.display = "block";
-              errEl.textContent = missing.length + " 个点位在 place.json 中未找到：" + missing.join("、");
+              errEl.textContent = bad.length + " 个点位 coordinate 无效：" + bad.join("、");
             }
-            console.error("缺失点位汇总：", missing);
+            console.error("无效坐标点位汇总：", bad);
           }
-          // 路线：按 plan 顺序、按 date 分段，每段一条贝塞尔曲线，同 date 同色
+          // 路线：按 plan 顺序一条普通折线，统一默认颜色（不分段、不做贝塞尔曲线）
           if (dayPoints.length > 1) {
-            // ① 按 date 切段（跨天线段归到新一天）
-            var segs = [];
-            var cur = { date: dayPoints[0].date, pts: [[dayPoints[0].lng, dayPoints[0].lat]] };
-            for (var si = 1; si < dayPoints.length; si++) {
-              var dp = dayPoints[si];
-              if (dp.date !== cur.date && cur.pts.length >= 2) {
-                segs.push(cur);
-                cur = { date: dp.date, pts: [cur.pts[cur.pts.length - 1]] };
-              }
-              cur.pts.push([dp.lng, dp.lat]);
-            }
-            if (cur.pts.length >= 2) segs.push(cur);
-
-            // ② 颜色分配：同 date 复用同色，不同 date 随机取 64 色秋景库，再叠灰蒙版变灰
-            function grayMix(rgb, t) {
-              var m = (rgb || "").match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
-              if (!m) return rgb;
-              var r = +m[1], g = +m[2], b = +m[3];
-              var nr = Math.round(r + (128 - r) * t);
-              var ng = Math.round(g + (128 - g) * t);
-              var nb = Math.round(b + (128 - b) * t);
-              return "rgb(" + nr + "," + ng + "," + nb + ")";
-            }
-            var dateColors = {};
-            function colorOf(d) {
-              if (!dateColors[d]) {
-                var cn = Math.floor(Math.random() * 64) + 1;   // 随机 64 色秋景
-                dateColors[d] = grayMix(pickColor(cn), 0.5);   // 叠 50% 灰蒙版
-              }
-              return dateColors[d];
-            }
-
-            // ③ 每段画一条平滑曲线（Catmull-Rom 转三次贝塞尔）
-            segs.forEach(function (seg) {
-              var pts = seg.pts;
-              var curvePath = [];
-              for (var j = 0; j < pts.length - 1; j++) {
-                var p0 = pts[Math.max(0, j - 1)];
-                var p1 = pts[j];
-                var p2 = pts[j + 1];
-                var p3 = pts[Math.min(pts.length - 1, j + 2)];
-                curvePath.push([
-                  p1,
-                  [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6],
-                  [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6],
-                  p2
-                ]);
-              }
-              if (curvePath.length) {
-                new AMap.BezierCurve({
-                  path: curvePath,
-                  strokeColor: colorOf(seg.date),
-                  strokeWeight: 3,
-                  strokeOpacity: 0.85,
-                  map: map
-                });
-              }
+            var linePath = dayPoints.map(function (dp) { return [dp.lng, dp.lat]; });
+            new AMap.Polyline({
+              path: linePath,
+              strokeWeight: 3,
+              strokeOpacity: 0.85,
+              map: map
             });
           }
           if (markers.length) {
@@ -207,7 +147,7 @@
           // 点地图空白处关闭信息窗
           map.on("click", function () { if (infoWindow) infoWindow.close(); });
           setTimeout(function () { try { map.resize(); } catch (e) { } }, 150);
-        }).catch(function (e) { console.error("读取 path.json / place.json 失败", e); });
+        }).catch(function (e) { console.error("读取 path.json 失败", e); });
       }
 
       // 等地图投影“完成”再上点，避免渲染时序导致的 NaN；
