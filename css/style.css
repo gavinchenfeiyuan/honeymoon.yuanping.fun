@@ -173,11 +173,9 @@ body {
   background: #777;
 }
 
-/* 已到达（plan.arrived === true）：圆点放大 + 蓝色光环 */
+/* 已到达（plan.arrived === true）：同风格，仅放大 */
 .map-dot.arrived {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   margin-top: 1px;
-  background: #1677ff;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, .28);
 }

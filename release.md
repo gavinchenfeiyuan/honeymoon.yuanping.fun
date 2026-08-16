@@ -160,3 +160,9 @@
 - **county 边界独立成文件 `county.json`**（216KB，紧凑格式），`path.json` 恢复为纯行程数据（7KB）
 - 新增脚本 **`fetch_county.py`**（项目根目录）：自动读取 `path.json` 去重出 county → 从 DataV GeoAtlas 拉边界 → 覆盖写 `county.json`。用法 `python fetch_county.py`
 - `index.html` 并行加载 `path.json` + `county.json`；`county.json` 缺失时降级为不画区域（不阻塞地图）
+
+## v0.46
+
+- **路线按行程状态分段着色**：折线改为逐段绘制，`plan` 点位 `arrived: true` 时，从该点出发的下一段为蓝色 `#1677ff`（线宽 4、zIndex 6），其余段默认灰色 `#9aa0a6`（线宽 3、zIndex 5）——灰色 = 未走、蓝色 = 已走
+- **已到点位圆点放大**：`.map-dot.arrived` 直径 3px → 6px，样式与普通点统一（同灰色圆点，仅尺寸差异）
+- `path.json` 全部点位补充 `arrived` 字段（当前通辽机场、通辽站为 `true`，行程推进时逐点标记即可点亮路线）
