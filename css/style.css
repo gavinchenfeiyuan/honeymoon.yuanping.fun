@@ -90,10 +90,10 @@ body {
   line-height: 1.7;
 }
 
-/* 网站大标题：地图左下角竖排大号标题（颜色由 JS 从 16 色表随机，避开高德 logo/版权区） */
+/* 网站大标题：地图宽 1/4 处竖排（颜色由 JS 从 16 色表随机，无阴影） */
 #site-title {
   position: absolute;
-  left: 14px;
+  left: 25%;
   bottom: 52px;
   z-index: 2;
   writing-mode: vertical-rl;
@@ -102,20 +102,19 @@ body {
   font-weight: 900;
   letter-spacing: .14em;
   line-height: 1;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, .35), 0 0 4px rgba(255, 255, 255, .5);
   pointer-events: none;
   user-select: none;
 }
 
-/* 版本号：标题右下角，黑色小字 */
+/* 版本号：标题右侧，竖排，与标题底部对齐 */
 #ver-tag {
   position: absolute;
-  left: 14px;
-  bottom: 26px;
+  left: calc(25% + 64px);
+  bottom: 52px;
   z-index: 2;
-  font: 700 13px/1 monospace;
+  writing-mode: vertical-rl;
+  font: 700 12px/1 monospace;
   color: #000;
-  text-shadow: 0 1px 3px rgba(255, 255, 255, .8);
   pointer-events: none;
   user-select: none;
 }
