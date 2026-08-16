@@ -230,3 +230,7 @@
 ## v0.57
 
 - 交通方式标签居中兜底：`setTimeout(0)` 可能早于 AMap 建好标记 DOM（测得尺寸为 0、offset 未生效）。改为 `requestAnimationFrame` 轮询（最多 40 次）直到测到真实尺寸再 `setOffset` 居中
+
+## v0.58
+
+- 交通方式标签居中终版：不再依赖 DOM 测量，直接按文本**估算尺寸**（CJK/emoji 按 11px 宽、半角按 6px、空格 4px、行高 13px），用 `setOffset(-w/2, -h/2)` 使几何中心贴合路段中点——规避 AMap 2.0 对元素 transform 的覆盖与 DOM 时序问题

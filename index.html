@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.57</div>
+      <div id="ver-tag">v0.58</div>
     </div>
   </section>
 
@@ -195,20 +195,20 @@
                   content: '<div class="map-transport">' + segTo.transportation + '</div>',
                   map: map
                 });
-                // AMap 2.0 会用自己的 transform 覆盖元素的 translate，故改用 setOffset 负半尺寸居中
-                // 标记 DOM 可能尚未建好，用 rAF 轮询直到能测到真实尺寸
-                var _tries = 0;
-                (function centerTransport() {
-                  var el = (tm.getDom && tm.getDom()) || (tm.getElement && tm.getElement()) || (tm.getContent && tm.getContent());
-                  if (el && el.getBoundingClientRect) {
-                    var r = el.getBoundingClientRect();
-                    if (r.width && r.height) {
-                      tm.setOffset(new AMap.Pixel(-Math.round(r.width / 2), -Math.round(r.height / 2)));
-                      return;
-                    }
+                // 居中：AMap 2.0 会用自身 transform 覆盖元素 translate，且取 DOM 尺寸不稳，
+                // 故直接按文本估算尺寸（CJK/emoji≈11px、半角≈6px、行高≈13）算负半偏移，确定生效
+                function estimateSize(t) {
+                  var w = 0;
+                  for (var ch of t) {
+                    var c = ch.codePointAt(0);
+                    if (c >= 0x2E80 || (c >= 0x2600 && c <= 0x27BF) || c >= 0x1F000) w += 11;
+                    else if (c === 0x20) w += 4;
+                    else w += 6;
                   }
-                  if (++_tries < 40) requestAnimationFrame(centerTransport);
-                })();
+                  return { w: w, h: 13 };
+                }
+                var _sz = estimateSize(segTo.transportation);
+                tm.setOffset(new AMap.Pixel(-Math.round(_sz.w / 2), -Math.round(_sz.h / 2)));
               }
             }
           }
