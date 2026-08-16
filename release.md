@@ -251,3 +251,10 @@
   - 代表点两个 marker（county 标签 `zooms:[3,7]` / name 标签 `zooms:[8,20]`），同位置、不同 zoom 段各自显示
 - 解决同城密集点（漠河市区 3 点、额尔古纳市区 2 点、通辽/齐齐哈尔/哈尔滨市区各 2 点）小比例尺下标签糊成一团的问题
 - 代表点 county 标签点击同样弹信息窗（内容同 name 标签）
+
+## v0.61
+
+- **紧急修复：点位和路线不显示的致命 bug**
+  - 根因：v0.59 引入的 `AMap.DOMOverlay` 是**插件**，默认不随核心 API 加载，`onAMapLoaded` 里 `AMap.DOMOverlay.call(this)` 时其为 `undefined` → 抛 `TypeError` → `addPoints` 整体中断，点位/路线/区域全部未绘制（仅地图底图正常）
+  - 修复①：JS API URL 加 `&plugin=AMap.DOMOverlay` 显式加载插件
+  - 修复②：`TransportLabel` 定义改为 `typeof AMap.DOMOverlay === "function"` 判断后才创建，交通标签创建处 try/catch 兜底——即使插件加载失败，也不影响点位/路线渲染

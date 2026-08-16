@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.60</div>
+      <div id="ver-tag">v0.61</div>
     </div>
   </section>
 
@@ -55,31 +55,35 @@
       // 交通方式标签：自定义 DOM 覆盖物。
       // 定位用 lngLatToContainer 拿到精确像素点，居中用 CSS transform:translate(-50%,-50%)，
       // 由浏览器布局引擎保证几何中心精确落在坐标点，无 Marker anchor/offset 的换算歧义。
-      var TransportLabel = function (lnglat, text) {
-        this._lnglat = lnglat;
-        this._text = text;
-        AMap.DOMOverlay.call(this);
-      };
-      TransportLabel.prototype = Object.create(AMap.DOMOverlay.prototype);
-      TransportLabel.prototype.constructor = TransportLabel;
+      // 注：AMap.DOMOverlay 是插件，需在 API URL 加 &plugin=AMap.DOMOverlay 才可用。
+      var TransportLabel = null;
+      if (typeof AMap.DOMOverlay === "function") {
+        TransportLabel = function (lnglat, text) {
+          this._lnglat = lnglat;
+          this._text = text;
+          AMap.DOMOverlay.call(this);
+        };
+        TransportLabel.prototype = Object.create(AMap.DOMOverlay.prototype);
+        TransportLabel.prototype.constructor = TransportLabel;
 
-      TransportLabel.prototype.createDOM = function () {
-        var el = document.createElement("div");
-        el.className = "map-transport";
-        el.textContent = this._text;
-        // 关键：绝对定位 + transform 让元素中心对齐；textShadow 由 .map-transport 提供
-        el.style.cssText = "position:absolute;white-space:nowrap;transform:translate(-50%,-50%);";
-        return el;
-      };
+        TransportLabel.prototype.createDOM = function () {
+          var el = document.createElement("div");
+          el.className = "map-transport";
+          el.textContent = this._text;
+          // 关键：绝对定位 + transform 让元素中心对齐；textShadow 由 .map-transport 提供
+          el.style.cssText = "position:absolute;white-space:nowrap;transform:translate(-50%,-50%);";
+          return el;
+        };
 
-      TransportLabel.prototype.draw = function () {
-        // 地图移动/缩放时 AMap 回调 draw() 重算像素位置
-        var proj = this.getProjection();
-        if (!proj) return;                    // 首帧投影未就绪则跳过，complete 后会重绘
-        var pos = proj.lngLatToContainer(this._lnglat);
-        this.dom.style.left = pos.getX() + "px";
-        this.dom.style.top = pos.getY() + "px";
-      };
+        TransportLabel.prototype.draw = function () {
+          // 地图移动/缩放时 AMap 回调 draw() 重算像素位置
+          var proj = this.getProjection();
+          if (!proj) return;                    // 首帧投影未就绪则跳过，complete 后会重绘
+          var pos = proj.lngLatToContainer(this._lnglat);
+          this.dom.style.left = pos.getX() + "px";
+          this.dom.style.top = pos.getY() + "px";
+        };
+      }
 
       var pointsAdded = false;
       // YYMMDD -> "2026年9月12日"
@@ -265,11 +269,15 @@
                 map: map
               });
               // 交通方式：plan.transportation 非空时，显示在该点前面进入线路的正中间
-              if (segTo.transportation) {
-                var midLng = (segFrom.lng + segTo.lng) / 2;
-                var midLat = (segFrom.lat + segTo.lat) / 2;
-                var lbl = new TransportLabel(new AMap.LngLat(midLng, midLat), segTo.transportation);
-                map.add(lbl);
+              if (segTo.transportation && TransportLabel) {
+                try {
+                  var midLng = (segFrom.lng + segTo.lng) / 2;
+                  var midLat = (segFrom.lat + segTo.lat) / 2;
+                  var lbl = new TransportLabel(new AMap.LngLat(midLng, midLat), segTo.transportation);
+                  map.add(lbl);
+                } catch (e) {
+                  console.warn("交通标签创建失败（不影响点位/路线）:", e && e.message);
+                }
               }
             }
           }
@@ -340,9 +348,10 @@
     }
   </script>
 
-  <!-- 高德 JS API：key 已内置，若要换 key 直接改下面 URL 里的 key 参数 -->
+  <!-- 高德 JS API：key 已内置，若要换 key 直接改下面 URL 里的 key 参数。
+       DOMOverlay 是插件，必须显式声明加载，否则 AMap.DOMOverlay 为 undefined -->
   <script crossorigin="anonymous"
-    src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&callback=onAMapLoaded"></script>
+    src="https://webapi.amap.com/maps?v=2.0&key=2a061f322f0cbaba1b5bf0a796fc422c&plugin=AMap.DOMOverlay&callback=onAMapLoaded"></script>
 
   <!-- 其余块：从 16 种莫兰迪古典色随机上色（地图块除外） -->
   <script>
