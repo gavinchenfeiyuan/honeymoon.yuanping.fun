@@ -175,9 +175,9 @@ body {
 
 /* 已到达（plan.arrived === true）：五花红（秋·五花山），更大 + 同色光环阴影 */
 .map-dot.arrived {
-  width: 9px;
-  height: 9px;
+  width: 6px;
+  height: 6px;
   margin-top: 1px;
   background: #C2502A;
-  box-shadow: 0 0 0 4px rgba(194, 80, 42, .30), 0 1px 3px rgba(0, 0, 0, .35);
+  box-shadow: 0 0 0 2px rgba(194, 80, 42, .30), 0 1px 3px rgba(0, 0, 0, .35);
 }
