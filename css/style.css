@@ -173,10 +173,11 @@ body {
   background: #A84D9C;   /* 未到：鹃紫（夏·杜鹃） */
 }
 
-/* 已到达（plan.arrived === true）：五花红（秋·五花山），放大一倍 */
+/* 已到达（plan.arrived === true）：五花红（秋·五花山），更大 + 同色光环阴影 */
 .map-dot.arrived {
-  width: 6px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
   margin-top: 1px;
   background: #C2502A;
+  box-shadow: 0 0 0 4px rgba(194, 80, 42, .30), 0 1px 3px rgba(0, 0, 0, .35);
 }
