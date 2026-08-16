@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.46</div>
+      <div id="ver-tag">v0.49</div>
     </div>
   </section>
 
@@ -171,10 +171,10 @@
             }
             console.error("无效坐标点位汇总：", bad);
           }
-          // 路线：按 plan 顺序分段绘制——未走为夏之绿（石绿），已走为秋之色（松霜绿）
+          // 路线（松叶）：夏=翠微（未走），秋=苍绿（已走）
           if (dayPoints.length > 1) {
-            var ROUTE_TODO = "#1A7A50";   // 未走：石绿（夏·松叶）
-            var ROUTE_DONE = "#4A6656";   // 已走：松霜绿（秋·松叶）
+            var ROUTE_TODO = "#35856E";   // 未走：翠微（夏·松叶）
+            var ROUTE_DONE = "#365B4F";   // 已走：苍绿（秋·松叶）
             for (var si = 0; si < dayPoints.length - 1; si++) {
               var segFrom = dayPoints[si], segTo = dayPoints[si + 1];
               new AMap.Polyline({

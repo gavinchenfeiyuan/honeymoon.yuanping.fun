@@ -141,7 +141,7 @@ body {
 .c10 { background: #4C5A47; color: #FFFFFF }
 .c11 { background: #97602F; color: #FFFFFF }
 .c12 { background: #C0A86B; color: #1A1A1A }
-.c13 { background: #6E5540; color: #FFFFFF }
+.c13 { background: #6E5540; color: #948448 }
 .c14 { background: #CFC298; color: #1A1A1A }
 .c15 { background: #46504B; color: #FFFFFF }
 .c16 { background: #6E7F80; color: #FFFFFF }
@@ -170,13 +170,13 @@ body {
   height: 3px;
   margin-top: 2px;
   border-radius: 50%;
-  background: #72B28E;   /* 未到：苍筤（夏·枫叶） */
+  background: #C6A15B;   /* 未到：秋香（夏·枫叶，含碧未红） */
 }
 
-/* 已到达（plan.arrived === true）：枫叶红（秋·枫叶），放大一倍 */
+/* 已到达（plan.arrived === true）：霜叶红（秋·枫叶，霜叶红于二月花），放大一倍 */
 .map-dot.arrived {
   width: 6px;
   height: 6px;
   margin-top: 1px;
-  background: #B02F23;
+  background: #A53A2D;
 }
