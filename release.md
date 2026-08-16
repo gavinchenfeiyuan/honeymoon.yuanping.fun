@@ -323,3 +323,70 @@
   - 路径 Polyline zIndex `6(已走)/5(未走)`（底层）
   - 区域叠加 Polygon zIndex `1`（最底）
   - 层级顺序：点位(30) > transportation(20) > 路径(5/6) > 区域叠加(1)
+
+## v0.70
+
+- **点位名字下方显示日期/时间**：
+  - 在 `.map-dot-name` 下方新增 `.map-dot-time` 时间行
+  - time 非空 → `"10:45 9/12"`（HHMM → HH:MM + M/D，无年份）
+  - time 为空 → `"9/12"`（仅 M/D）
+  - 逻辑：date YYMMDD 取第2-3位月、第4-5位日；time HHMM 取前2时后2分
+  - `dayPoints` 补充 `time` 字段，从 `item.time` 归一化
+  - CSS：10px 白底胶囊，浅灰字，柔和阴影
+
+## v0.71
+
+- **信息窗时尚化 + 补 time / 行政区划分行**：
+  - 毛玻璃卡片风：圆角 14px、渐变头部（用点位 dayColor → 深色）、图标行式 body、毛玻璃 body 底
+  - 信息行：📍 city、🗺 county **各占一行**（原为 `·` 拼接一行），🗓 日期时间（time 也纳入显示，time 空只显日期），💬 备注
+  - `.iw-*` 系列 CSS 类（.iw-card/.iw-head/.iw-title/.iw-body/.iw-row/.iw-ico/.iw-val）
+
+## v0.72
+
+- **信息窗高定化（高雅时尚）**：
+  - 顶部主视觉：当日色 150° 渐变 + 右上柔和辉光 + 大标题 + 金色细线点缀（已到达态）
+  - Kicker 眉标：`HONEYMOON · ARRIVED/STOP`，大写、字距 2.5px
+  - 时间徽章：圆角胶囊 chip（日期 · 时间），毛玻璃半透
+  - body：图标块（圆角浅底）+ label 眉标（大写灰字）+ 值；行间细分隔线
+  - 去掉高德默认 InfoWindow 外框/描边/关闭按钮（`.amap-info-*` 覆盖），卡片无缝悬浮
+  - 现代 CSS：`backdrop-filter` 毛玻璃 + `saturate`、圆角 18、大投影 `0 18px 50px`
+  - 关闭靠点击地图（已有 map click 监听）
+
+## v0.73
+
+- **信息窗改为「一块玻璃上写字」**：
+  - 整卡玻璃质感：低饱和半透白渐变 + `backdrop-filter: blur(22px) saturate(180%)` 强磨砂，地图透出
+  - 当日色 tint 玻璃：`color-mix()` 用 `--iw-tint`（dayColor 26% 混透明），极淡着色，带回退层
+  - 玻璃高光：顶部反光条 `.iw-card::before`（灯管倒影）+ inset 高光 + 白描边
+  - 文字直接写在玻璃上：通体白字 + 文字阴影保证可读；无独立实色块、无白底 body
+  - hero 不再用实色渐变，去掉 `.iw-glow`；icon 块改半透白玻璃 chip
+  - 已到达态：金色高光细线
+
+## v0.74
+
+- **修复信息窗两个问题**：
+  - **日期时间重复**：去掉 body 里的「🗓 时间」行，日期时间只保留在头部 badge（`日期 · 时间` 胶囊），不再显示两次
+  - **字看不清**：玻璃由浅色改为**深色磨砂玻璃**——当日色 tint（color-mix 62%）打底 + 半透深色层，白字对比清晰；文字阴影加强（title/val 等），label 用淡白
+  - 玻璃细节：`.iw-card` 加 `position:relative`（修复反光条 `::before` 定位）；反光条压低高度/透明度避免盖字；icon chip、分隔线适配深底
+
+## v0.75
+
+- **信息窗：透明毛玻璃 + 深色字**（终稿方向）：
+  - 背景：**透明毛玻璃**——浅色半透白渐变（.18–.34）+ 当日色淡 tint（color-mix 24%），`backdrop-filter: blur(20px) saturate(160%)`，地图清晰透出
+  - 字体：**深色**——标题 #1b2129、正文 #1b2129、kicker #3a4450、label #8a929e；标题带极淡白描边（浅玻璃上可读）
+  - badge / icon chip：半透白底（.55/.65）+ 深色字，玻璃小贴片质感
+  - 分隔线、反光条适配浅玻璃
+
+## v0.76
+
+- **信息窗微调**：
+  - 毛玻璃透明度降低：白底 .34/.18/.28 → .22/.10/.18，tint 24%→16%，blur 20→18
+  - 去掉外圈灰框：AMap 容器全透明化（补 `.amap-info-wrap`/`.amap-info-contentContainer`/`.amap-info-arrow`），`.iw-card` 去掉实色 border（改纯内发光）
+
+## v0.77
+
+- **彻底移除 infoWindow 灰框**：CSS 覆盖 `.amap-info-*` 类不可靠（JSAPI 版本差异），弃用 `AMap.InfoWindow`，改用 **`AMap.Marker` 承载自定义 content** 作为弹层
+  - 变量 `infoWindow` → `popMarker`（单例复用）
+  - 关闭方式 `infoWindow.close()` → `popMarker.setMap(null)`
+  - 定位：`anchor:"bottom-center"` + `offset: new AMap.Pixel(0, 24)`，卡片浮于点位上方
+  - 无高德默认皮肤/外框，卡片纯自定义 DOM；点击卡片本身不触发地图 click 关闭（marker 拦截冒泡）

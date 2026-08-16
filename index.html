@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.69</div>
+      <div id="ver-tag">v0.77</div>
     </div>
   </section>
 
@@ -129,7 +129,7 @@
           var plan = (data && data.plan) || [];
           if (!plan.length) { console.warn("path.json 没有 plan"); return; }
           var markers = [];
-          var infoWindow = null;
+          var popMarker = null;   // 自定义弹层（AMap.Marker 承载，替代 InfoWindow，避免默认灰框）
           var bad = [];       // coordinate 缺失/格式异常的点
           var dayPoints = []; // {lng,lat,date} 按 plan 顺序，用于绘制路线
           // 严格按 plan 顺序打点
@@ -151,6 +151,17 @@
               // explicit: true 的点默认（全 zoom 段）显示 name；否则放大到 zoom >= 8 才显示
               var zooms = (item.explicit === true) ? [3, 20] : [ZOOM_NAME_MIN, 20];
 
+              // 点位名字下方的日期/时间行：time 非空 → "10:45 9/12"，否则 → "9/12"
+              var t = String(item.time || "").trim();
+              var d = String(item.date || "").slice(0, 6);
+              var timeLine = "";
+              if (d.length === 6) {
+                var mm = (+d.slice(2, 4)) + "";
+                var dd = (+d.slice(4, 6)) + "";
+                var tLine = t.length === 4 ? t.slice(0, 2) + ":" + t.slice(2, 4) + " " : "";
+                timeLine = tLine + mm + "/" + dd;
+              }
+
               var m = new AMap.Marker({
                 position: [lng, lat],
                 anchor: "bottom-center",
@@ -159,26 +170,67 @@
                 content:
                   '<div class="map-dot-wrap">' +
                   '<span class="map-dot-name" style="background:' + dayColor + '">' + name + '</span>' +
+                  (timeLine ? '<span class="map-dot-time">' + timeLine + '</span>' : "") +
                   dotHtml +
                   '</div>',
                 map: map
               });
 
-              // 点击标记弹出信息窗（名称 + 行政区划 + 日期 + 备注）
+              // 点击标记弹出信息窗（名称 + 行政区划 + 日期时间 + 备注）
               m.on("click", function () {
-                if (infoWindow) infoWindow.close();
-                var lines =
-                  '<strong>' + name + '</strong>' +
-                  ((item.city || item.county) ? '<br>' + [item.city, item.county].filter(Boolean).join(" · ") : "") +
-                  (item.date ? '<br>' + fmtDate(item.date) : "") +
-                  (item.note ? '<br>' + item.note : "");
-                infoWindow = new AMap.InfoWindow({
-                  content:
-                    '<div style="font:14px/1.6 system-ui,-apple-system,\'Noto Sans SC\',sans-serif;padding:2px 4px;color:#222;">' +
-                    lines + '</div>',
-                  offset: new AMap.Pixel(0, -32)
+                if (popMarker) { popMarker.setMap(null); popMarker = null; }
+
+                var dateFull = item.date ? fmtDate(item.date) : "";
+                var tt = String(item.time || "").trim();
+                var timeTxt = tt.length === 4 ? tt.slice(0, 2) + ":" + tt.slice(2, 4) : "";
+                var arrived = item.arrived === true;
+
+                // 信息项：icon + label + value（日期时间只放头部 badge，不在此重复）
+                function row(icon, label, val) {
+                  if (!val) return "";
+                  return '<div class="iw-row">' +
+                    '<div class="iw-ico">' + icon + '</div>' +
+                    '<div class="iw-meta">' +
+                    '<div class="iw-label">' + label + '</div>' +
+                    '<div class="iw-val">' + val + '</div>' +
+                    '</div></div>';
+                }
+
+                var infoRows =
+                  (item.city ? row("📍", "城市", item.city) : "") +
+                  (item.county ? row("🗺", "区域", item.county) : "") +
+                  // 备注：仅显示内容，不带图标与 label；「，」或「\n」触发换行
+                  (item.note
+                    ? '<div class="iw-note">' + String(item.note).replace(/，/g, "\n") + '</div>'
+                    : "");
+
+                // 头部徽章：日期/时间
+                var badgeParts = [];
+                if (dateFull) badgeParts.push(dateFull);
+                if (timeTxt) badgeParts.push(timeTxt);
+                var badge = badgeParts.length
+                  ? '<div class="iw-badge">' + badgeParts.join(" · ") + '</div>' : "";
+
+                var body =
+                  '<div class="iw-card' + (arrived ? ' is-arrived' : '') + '" style="--iw-tint:' + dayColor + '">' +
+                  '<div class="iw-hero">' +
+                  '<div class="iw-hero-inner">' +
+                  '<div class="iw-title">' + name + '</div>' +
+                  badge +
+                  '</div>' +
+                  '</div>' +
+                  '<div class="iw-body">' + infoRows + '</div>' +
+                  '</div>';
+
+                // 用 AMap.Marker 承载自定义弹层：无高德默认皮肤/灰框
+                popMarker = new AMap.Marker({
+                  position: [lng, lat],
+                  anchor: "bottom-center",
+                  offset: new AMap.Pixel(0, 24),   // 卡片底部锚点在点上，上移使卡片浮于点上
+                  zIndex: 50,
+                  content: body,
+                  map: map
                 });
-                infoWindow.open(map, [lng, lat]);
               });
               markers.push(m);
               dayPoints.push({
@@ -186,7 +238,8 @@
                 lat: lat,
                 date: String(item.date || "").slice(0, 6),   // 归一化为 YYMMDD
                 arrived: item.arrived === true,
-                transportation: String(item.transportation || "").trim()
+                transportation: String(item.transportation || "").trim(),
+                time: String(item.time || "").trim()
               });
             } catch (e) {
               console.warn("点位「" + name + "」创建失败:", e && e.message);
@@ -292,7 +345,7 @@
             catch (e) { console.warn("setFitView:", e); }
           }
           // 点地图空白处关闭信息窗
-          map.on("click", function () { if (infoWindow) infoWindow.close(); });
+          map.on("click", function () { if (popMarker) { popMarker.setMap(null); popMarker = null; } });
           setTimeout(function () { try { map.resize(); } catch (e) { } }, 150);
         }).catch(function (e) { console.error("读取 path.json 失败", e); });
       }
