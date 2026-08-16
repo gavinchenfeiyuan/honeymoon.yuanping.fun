@@ -226,3 +226,7 @@
 ## v0.56
 
 - 交通方式标签居中再修：AMap 2.0 会用自身 `transform` 覆盖元素上的 `translate(-50%,-50%)`，导致仍偏下方。改在渲染后读取标签实际尺寸，用 `setOffset(-w/2, -h/2)` 负半偏移精确居中（兼容 `getDom/getElement/getContent`）
+
+## v0.57
+
+- 交通方式标签居中兜底：`setTimeout(0)` 可能早于 AMap 建好标记 DOM（测得尺寸为 0、offset 未生效）。改为 `requestAnimationFrame` 轮询（最多 40 次）直到测到真实尺寸再 `setOffset` 居中

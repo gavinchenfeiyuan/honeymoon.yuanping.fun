@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.56</div>
+      <div id="ver-tag">v0.57</div>
     </div>
   </section>
 
@@ -196,15 +196,19 @@
                   map: map
                 });
                 // AMap 2.0 会用自己的 transform 覆盖元素的 translate，故改用 setOffset 负半尺寸居中
-                setTimeout(function () {
+                // 标记 DOM 可能尚未建好，用 rAF 轮询直到能测到真实尺寸
+                var _tries = 0;
+                (function centerTransport() {
                   var el = (tm.getDom && tm.getDom()) || (tm.getElement && tm.getElement()) || (tm.getContent && tm.getContent());
                   if (el && el.getBoundingClientRect) {
                     var r = el.getBoundingClientRect();
                     if (r.width && r.height) {
-                      tm.setOffset(new AMap.Pixel(-r.width / 2, -r.height / 2));
+                      tm.setOffset(new AMap.Pixel(-Math.round(r.width / 2), -Math.round(r.height / 2)));
+                      return;
                     }
                   }
-                }, 0);
+                  if (++_tries < 40) requestAnimationFrame(centerTransport);
+                })();
               }
             }
           }
