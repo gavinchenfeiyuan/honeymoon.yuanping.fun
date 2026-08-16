@@ -158,8 +158,8 @@
               if (d.length === 6) {
                 var mm = (+d.slice(2, 4)) + "";
                 var dd = (+d.slice(4, 6)) + "";
-                var tLine = t.length === 4 ? t.slice(0, 2) + ":" + t.slice(2, 4) + " " : "";
-                timeLine = tLine + mm + "/" + dd;
+                var tLine = t.length === 4 ? " " + t.slice(0, 2) + ":" + t.slice(2, 4) : "";
+                timeLine = mm + "/" + dd + tLine;
               }
 
               var m = new AMap.Marker({
@@ -196,9 +196,9 @@
                     '</div></div>';
                 }
 
+                var locVal = [item.county, item.city].filter(Boolean).join("·");
                 var infoRows =
-                  (item.city ? row("📍", "城市", item.city) : "") +
-                  (item.county ? row("🗺", "区域", item.county) : "") +
+                  (locVal ? row("🗺", "区域", locVal) : "") +
                   // 备注：仅显示内容，不带图标与 label；「，」或「\n」触发换行
                   (item.note
                     ? '<div class="iw-note">' + String(item.note).replace(/，/g, "\n") + '</div>'
