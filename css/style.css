@@ -90,7 +90,7 @@ body {
   line-height: 1.7;
 }
 
-/* 网站大标题：地图左下角竖排水印（避开高德 logo/版权区） */
+/* 网站大标题：地图左下角竖排大号标题（颜色由 JS 从 16 色表随机，避开高德 logo/版权区） */
 #site-title {
   position: absolute;
   left: 14px;
@@ -98,12 +98,24 @@ body {
   z-index: 2;
   writing-mode: vertical-rl;
   font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
-  font-size: clamp(28px, 9vw, 40px);
-  font-weight: 800;
+  font-size: clamp(44px, 14vw, 64px);
+  font-weight: 900;
   letter-spacing: .14em;
   line-height: 1;
-  color: rgba(255, 255, 255, .96);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, .4), 0 0 3px rgba(0, 0, 0, .3);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .35), 0 0 4px rgba(255, 255, 255, .5);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 版本号：标题右下角，黑色小字 */
+#ver-tag {
+  position: absolute;
+  left: 14px;
+  bottom: 26px;
+  z-index: 2;
+  font: 700 13px/1 monospace;
+  color: #000;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, .8);
   pointer-events: none;
   user-select: none;
 }
