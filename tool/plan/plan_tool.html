@@ -352,6 +352,19 @@
       box-shadow: 0 0 0 2px rgba(37, 99, 235, .15);
     }
 
+    /* 布尔字段：勾选框居中 */
+    td.bool-cell {
+      text-align: center;
+      cursor: pointer;
+    }
+    .bool-check {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      vertical-align: middle;
+    }
+
     /* ===== 行拖拽排序 ===== */
     tbody tr[draggable="true"] {
       cursor: grab;
@@ -484,8 +497,8 @@
       <code>http://localhost:8080/plan_tool.html</code>。<br>
       每张表格上方内嵌高德地图：按表格行顺序标点并连线，行拖拽/编辑/增删后自动刷新。地图需高德 <b>JS API 类型</b> 的 Key
       （已内置，顶部输入框可覆盖，填写后刷新页面生效）。<br>
-      <b>局域网手机访问（iPhone/iPad）：</b>把 <code>plan_tool.html</code>、<code>path.json</code>、<code>place.json</code>、<code>serve.py</code>
-      放在同一目录，服务器上运行 <code>python serve.py</code>，然后用手机 Safari 访问 <code>http://&lt;服务器IP&gt;:8080/plan_tool.html</code>。
+      <b>局域网手机访问（iPhone/iPad）：</b>在项目根目录用 <code>python tool/plan/serve.py</code> 启动服务器，
+      然后用手机 Safari 访问 <code>http://&lt;服务器IP&gt;:8080/tool/plan/plan_tool.html</code>。
       保存时自动 POST 写回服务器文件（iOS Safari 不支持保存对话框，故走服务器接口）。桌面本地双击打开则仍用保存对话框/下载。
     </div>
   </details>
@@ -654,7 +667,20 @@
         for (const f of fields) {
           const td = document.createElement("td");
           const v = r ? r[f] : undefined;
-          if (v === undefined || v === null || v === "") {
+          if (f === "explicit" || f === "arrived") {
+            // 布尔字段：用勾选框渲染
+            td.classList.add("bool-cell");
+            td.dataset.field = f;
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.className = "bool-check";
+            cb.checked = v === true || v === "true";
+            cb.addEventListener("change", () => {
+              // 勾选状态即数据，无需额外存储；联动地图刷新（arrived 会影响 index.html 的路线配色）
+              updateMap(td.closest(".table-card").dataset.key);
+            });
+            td.appendChild(cb);
+          } else if (v === undefined || v === null || v === "") {
             td.className = "empty";
             td.textContent = "";
           } else if (typeof v === "number") {
@@ -663,7 +689,7 @@
             td.textContent = String(v);
           }
           td.dataset.field = f;
-          makeEditable(td);
+          if (!(f === "explicit" || f === "arrived")) makeEditable(td);
           tr.appendChild(td);
         }
         const tdOp = document.createElement("td");
@@ -830,7 +856,18 @@
         const td = document.createElement("td");
         td.className = "empty";
         td.dataset.field = f;
-        makeEditable(td);
+        if (f === "explicit" || f === "arrived") {
+          td.classList.add("bool-cell");
+          td.textContent = "";
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.className = "bool-check";
+          cb.checked = false;
+          cb.addEventListener("change", () => updateMap(td.closest(".table-card").dataset.key));
+          td.appendChild(cb);
+        } else {
+          makeEditable(td);
+        }
         tr.appendChild(td);
       }
       const tdOp = document.createElement("td");
@@ -860,133 +897,23 @@
         const tds = tr.querySelectorAll("td:not(.idx):not(.op):not(.ro)");
         const obj = {};
         tds.forEach((td, i) => {
+          const f = fields[i];
+          const cb = td.querySelector(".bool-check");
+          if (cb) {
+            // 布尔字段：勾选 → true，未勾选 → false（始终输出，保持字段存在）
+            obj[f] = cb.checked;
+            return;
+          }
           const v = td.textContent;
-          if (v !== "") obj[fields[i]] = v;
+          if (v !== "") obj[f] = v;
         });
         return obj;
       });
     }
 
     /* ============ 保存 ============ */
-    /* 1) 校验：每行 name / date 必须存在 */
-    function validate() {
-      for (const k of ["plan", "fact"]) {
-        const rows = readTable(k);
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          if (!r.name || !r.name.trim()) return { msg: (k === "plan" ? "🗺️ plan" : "✅ fact") + "表 第 " + (i + 1) + " 行缺少 name" };
-          if (!r.date || !r.date.trim()) return { msg: (k === "plan" ? "🗺️ plan" : "✅ fact") + "表 第 " + (i + 1) + " 行缺少 date" };
-        }
-      }
-      return null;
-    }
-
-    /* 2) place.json 同步：不存在的 name 自动创建（高德查坐标，查不到则留空待手动补） */
-    function geocodeByName(name) {
-      return new Promise(resolve => {
-        const cb = "amap_cb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
-        const script = document.createElement("script");
-        script.src = "https://restapi.amap.com/v3/geocode/geo?address=" + encodeURIComponent(name) +
-          "&key=" + encodeURIComponent(amapKey) + "&callback=" + cb;
-        window[cb] = data => { delete window[cb]; script.remove(); resolve(data); };
-        script.onerror = () => { delete window[cb]; script.remove(); resolve(null); };
-        document.head.appendChild(script);
-      });
-    }
-
-    /* 2) place.json 同步：缺 lng/lat/location 的条目（含新增与已存在的）统一补全 */
-    async function fillCoord(base) {
-      const entry = Object.assign({ lng: 0, lat: 0, location: "" }, base);
-      if (amapKey) {
-        try {
-          const g = await geocodeByName(base.name);
-          if (g && g.status === "1" && g.geocodes && g.geocodes.length) {
-            const loc = g.geocodes[0].location.split(",");
-            entry.lng = Number(loc[0]);
-            entry.lat = Number(loc[1]);
-            entry.location = g.geocodes[0].formatted_address || "";
-            return { entry, noCoord: false };
-          }
-        } catch (_) { /* 查不到或失败走默认值 */ }
-      }
-      return { entry, noCoord: true };
-    }
-
-    async function syncPlace() {
-      const names = [];
-      ["plan", "fact"].forEach(k =>
-        readTable(k).forEach(r => {
-          if (r.name && !names.includes(r.name)) names.push(r.name);
-        }));
-      const existing = new Set(cachedPlace.map(p => p && p.name));
-      const missing = names.filter(n => !existing.has(n));
-
-      // 已存在但缺字段的条目
-      const needFix = cachedPlace.filter(p => p && (p.lng === undefined || p.lat === undefined || p.location === undefined || p.location === ""));
-      const fixNames = new Set(needFix.map(p => p.name));
-
-      const places = cachedPlace.map(p => Object.assign({}, p));
-      const noCoord = [];
-      let fixed = 0;
-      if (needFix.length) setStatus("正在补全 " + needFix.length + " 个已有地点的坐标（高德）…");
-      for (const p of places) {
-        if (fixNames.has(p.name)) {
-          const { entry, noCoord: nc } = await fillCoord(p);
-          Object.assign(p, entry);
-          if (nc) noCoord.push(p.name);
-          fixed++;
-        }
-      }
-      if (missing.length) setStatus("正在查询 " + missing.length + " 个新地点的坐标（高德）…");
-      for (const n of missing) {
-        const { entry, noCoord: nc } = await fillCoord({ name: n });
-        if (nc) noCoord.push(n);
-        places.push(entry);
-      }
-      return { places, added: missing.length, fixed, noCoord };
-    }
-
-    /* 3) 检查 A：每行 name 在 place.json 中对应的 location 必须非空 */
-    function checkLocation(places) {
-      const map = new Map(places.map(p => [p.name, p]));
-      const bad = [];
-      for (const k of ["plan", "fact"]) {
-        readTable(k).forEach((r, i) => {
-          if (!r.name) return;
-          const p = map.get(r.name);
-          if (!p || !p.location || !p.location.trim()) {
-            bad.push((k === "plan" ? "🗺️ plan" : "✅ fact") + " 第 " + (i + 1) + " 行（" + r.name + "）→ place.location 为空");
-          }
-        });
-      }
-      return bad;
-    }
-
-    /* 3) 检查 B：相邻两行 name 对应 location 不同城市、且下行 traffic 为空 → 报错
-       （location 格式为"市-区"，按第一段（城市）比较，同城不同区不算跨） */
-    function cityOf(loc) {
-      return (loc || "").split("-")[0].trim();
-    }
-
-    function checkTraffic(places) {
-      const map = new Map(places.map(p => [p.name, p]));
-      const bad = [];
-      for (const k of ["plan", "fact"]) {
-        const rows = readTable(k);
-        for (let i = 0; i < rows.length - 1; i++) {
-          const cur = rows[i], next = rows[i + 1];
-          if (!cur.name || !next.name) continue;
-          const l1 = map.get(cur.name), l2 = map.get(next.name);
-          if (!l1 || !l2) continue;   // location 缺失由检查 A 处理
-          if (cityOf(l1.location) !== cityOf(l2.location) && (!next.traffic || !next.traffic.trim())) {
-            bad.push((k === "plan" ? "🗺️ plan" : "✅ fact") + " 第 " + (i + 1) + "→" + (i + 2) + " 行（" + cur.name + " → " + next.name + "）跨城市（" + cityOf(l1.location) + " ≠ " + cityOf(l2.location) + "）但下行 traffic 为空");
-          }
-        }
-      }
-      return bad;
-    }
-
-    /* 4) 相邻两行 date 不同且中间无 overnight → 插入 overnight */
+    /* 保存：不做任何校验，直接写回 path.json */
+    /* 相邻两行 date 不同且中间无 overnight → 插入 overnight */
     function withOvernight(rows) {
       const out = [];
       for (const r of rows) {
@@ -1039,47 +966,16 @@
     }
 
     async function saveAll() {
-      // 1) 校验
-      const err = validate();
-      if (err) { alert("⚠️ " + err.msg); setStatus(err.msg, "err"); return; }
-
-      // 2) 同步 place.json
-      const { places, added, fixed, noCoord } = await syncPlace();
-
-      // 3) 检查：location 为空、或跨 location 且下行 traffic 为空 → 报错中止（提示最后一项）
-      const badLoc = checkLocation(places);
-      const badTraffic = checkTraffic(places);
-      const allBad = badLoc.concat(badTraffic);
-      if (allBad.length) {
-        const last = allBad[allBad.length - 1];
-        alert("⚠️ 保存中止（共 " + allBad.length + " 处问题）：\n\n" + last + "\n\n请修正后再保存。");
-        setStatus("保存中止：" + last, "err");
-        return;
-      }
-
-      // 4) 写回 place.json
-      if (added || fixed) {
-        const placeObj = { place: places };
-        try {
-          const name = await writeJsonFile("place.json", placeObj);
-          let msg = "✅ place.json 已更新（新增 " + added + "、补全 " + fixed + " 个地点）→ " + name;
-          if (noCoord.length) msg += "；⚠️ " + noCoord.length + " 个地点坐标未能自动查询（" + noCoord.join("、") + "），已置 0，请手动补 lng/lat/location";
-          setStatus(msg, noCoord.length ? "warn" : "ok");
-        } catch (e) {
-          if (e.name !== "AbortError") { setStatus("place.json 保存失败：" + e.message, "err"); }
-          return;
-        }
-      } else {
-        setStatus("✅ 所有地点均存在且字段齐全，place.json 无需更新", "ok");
-      }
-
-      // 3) 保存 path.json（plan 自动补 overnight）
+      // 简化保存：不做任何校验，直接写回 path.json（plan 自动补 overnight）
       try {
         const name = await writeJsonFile("path.json", buildPathData());
         setStatus("✅ path.json 已保存（自动补齐 overnight）→ " + name, "ok");
       } catch (e) {
         if (e.name !== "AbortError") setStatus("path.json 保存失败：" + e.message, "err");
+        return;
       }
+      // 保存成功后自动重新加载数据，让表格回到最新状态
+      await loadPath();
     }
 
     function downloadBlob(text, filename) {

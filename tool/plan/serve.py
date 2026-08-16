@@ -18,8 +18,14 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 ALLOWED_FILES = {"path.json", "place.json"}   # 只允许保存这两个文件（白名单）
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
 
+# 服务根目录 = 项目根（serve.py 位于 项目根/tool/plan/，向上 3 级）
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 class Handler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=ROOT, **kwargs)
+
     def do_POST(self):
         if self.path != "/api/save":
             self.send_error(404, "not found")
@@ -32,7 +38,7 @@ class Handler(SimpleHTTPRequestHandler):
             if fname not in ALLOWED_FILES:
                 self.send_error(400, "file not allowed: %s" % fname)
                 return
-            with open(fname, "w", encoding="utf-8", newline="") as f:
+            with open(os.path.join(ROOT, fname), "w", encoding="utf-8", newline="") as f:
                 f.write(content)
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -46,9 +52,13 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # 服务根目录 = 项目根（ROOT），使：
+    #   http://<IP>:PORT/tool/plan/plan_tool.html  可加载根目录 path.json（../../path.json）
+    #   http://<IP>:PORT/index.html                可访问静态展示站
+    #   /api/save 写回根目录 path.json / place.json
     server = HTTPServer(("0.0.0.0", PORT), Handler)
-    print("蜜月行程表服务器运行中： http://0.0.0.0:%d/plan_tool.html" % PORT)
+    print("蜜月行程表服务器运行中： http://0.0.0.0:%d/tool/plan/plan_tool.html" % PORT)
+    print("静态展示站：             http://0.0.0.0:%d/index.html" % PORT)
     print("本机 IP 查看： ipconfig（Windows） / ifconfig（Linux/macOS）")
     try:
         server.serve_forever()
