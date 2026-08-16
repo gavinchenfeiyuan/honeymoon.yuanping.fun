@@ -61,8 +61,9 @@
       function addPoints() {
         if (pointsAdded) return;   // 防止 complete 事件与兜底定时器重复添加
         pointsAdded = true;
-        // 同 date 同色：从 16 色配色库随机取底色，再叠蒙版淡化（与白混合）
+        // 同 date 同色：从 16 色配色库随机取底色（不同日期不撞色），再叠蒙版淡化（与白混合）
         var dateColors = {};
+        var usedColors = {};
         function fadeWithWhite(rgb, t) {
           var m = (rgb || "").match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
           if (!m) return rgb;
@@ -74,12 +75,17 @@
         }
         function colorOf(date) {
           if (!dateColors[date]) {
-            var tmp = document.createElement("div");
-            tmp.className = "c" + (Math.floor(Math.random() * 16) + 1);
-            tmp.style.display = "none";
-            document.body.appendChild(tmp);
-            var bg = getComputedStyle(tmp).backgroundColor;
-            document.body.removeChild(tmp);
+            var bg = null, guard = 0;
+            while (!bg || usedColors[bg]) {
+              var tmp = document.createElement("div");
+              tmp.className = "c" + (Math.floor(Math.random() * 16) + 1);
+              tmp.style.display = "none";
+              document.body.appendChild(tmp);
+              bg = getComputedStyle(tmp).backgroundColor;
+              document.body.removeChild(tmp);
+              if (++guard > 30) break;   // 兜底：色表用尽时不再强求不撞色
+            }
+            usedColors[bg] = true;
             dateColors[date] = fadeWithWhite(bg, 0.5);   // 叠 50% 白色蒙版淡化
           }
           return dateColors[date];
