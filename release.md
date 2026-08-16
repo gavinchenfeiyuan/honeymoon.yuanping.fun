@@ -234,3 +234,11 @@
 ## v0.58
 
 - 交通方式标签居中终版：不再依赖 DOM 测量，直接按文本**估算尺寸**（CJK/emoji 按 11px 宽、半角按 6px、空格 4px、行高 13px），用 `setOffset(-w/2, -h/2)` 使几何中心贴合路段中点——规避 AMap 2.0 对元素 transform 的覆盖与 DOM 时序问题
+
+## v0.59
+
+- **交通方式标签居中根治**：从 `AMap.Marker`（anchor/offset + 估算尺寸）改为 **`AMap.DOMOverlay` 子类 `TransportLabel`**
+  - 定位：`lngLatToContainer` 拿精确像素点（AMap 官方经纬度→像素换算），坐标中点 `(a+b)/2` 不变
+  - 居中：CSS `transform: translate(-50%, -50%)`，由浏览器布局引擎保证几何中心精确落点，**与字体/emoji/测量时机/anchor-offset 换算全部无关**
+  - 根因：v0.55~v0.58 反复跳坑在于 AMap 2.0 对 HTML content 的 anchor→offset 换算不透明、元素宽高取的是引擎测量值，与真实布局不一致
+- `.map-transport` 样式：`display:inline-block` → `position:absolute`，补 `pointer-events:none`（纯文字不拦触摸）
