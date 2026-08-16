@@ -529,14 +529,14 @@
     async function loadPath() {
       setStatus("正在加载 path.json / place.json …");
       try {
-        const res = await fetch("path.json", { cache: "no-store" });
+        const res = await fetch("../../path.json", { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const text = await res.text();
         const data = JSON.parse(text);
         originalJson = data;
         // 顺带加载 place.json（供 location 列显示与保存检查）
         try {
-          const pres = await fetch("place.json", { cache: "no-store" });
+          const pres = await fetch("../../place.json", { cache: "no-store" });
           if (pres.ok) {
             const pdata = JSON.parse(await pres.text());
             cachedPlace = Array.isArray(pdata.place) ? pdata.place : [];
