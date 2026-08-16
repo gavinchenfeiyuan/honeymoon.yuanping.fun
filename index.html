@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.41</div>
+      <div id="ver-tag">v0.42</div>
     </div>
   </section>
 
@@ -61,6 +61,29 @@
       function addPoints() {
         if (pointsAdded) return;   // 防止 complete 事件与兜底定时器重复添加
         pointsAdded = true;
+        // 同 date 同色：从 16 色配色库随机取底色，再叠蒙版淡化（与白混合）
+        var dateColors = {};
+        function fadeWithWhite(rgb, t) {
+          var m = (rgb || "").match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
+          if (!m) return rgb;
+          var r = +m[1], g = +m[2], b = +m[3];
+          var nr = Math.round(r + (255 - r) * t);
+          var ng = Math.round(g + (255 - g) * t);
+          var nb = Math.round(b + (255 - b) * t);
+          return "rgb(" + nr + "," + ng + "," + nb + ")";
+        }
+        function colorOf(date) {
+          if (!dateColors[date]) {
+            var tmp = document.createElement("div");
+            tmp.className = "c" + (Math.floor(Math.random() * 16) + 1);
+            tmp.style.display = "none";
+            document.body.appendChild(tmp);
+            var bg = getComputedStyle(tmp).backgroundColor;
+            document.body.removeChild(tmp);
+            dateColors[date] = fadeWithWhite(bg, 0.5);   // 叠 50% 白色蒙版淡化
+          }
+          return dateColors[date];
+        }
         // 只读取 path.json：plan 提供顺序 + 内嵌 coordinate（"经度,纬度"）
         fetch("path.json").then(function (r) {
           if (!r.ok) throw new Error("path.json HTTP " + r.status);
@@ -84,13 +107,15 @@
               return;
             }
             try {
+              // 地名背景框颜色：同 date 同色（淡化后）
+              var dayColor = colorOf(String(item.date || "").slice(0, 6));
               var m = new AMap.Marker({
                 position: [lng, lat],
                 anchor: "bottom-center",
-                // 自定义标记：圆点 + 点位名称（plan.name）
+                // 自定义标记：圆点 + 点位名称（背景框按日期同色）
                 content:
                   '<div class="map-dot-wrap">' +
-                  '<span class="map-dot-name">' + name + '</span>' +
+                  '<span class="map-dot-name" style="background:' + dayColor + '">' + name + '</span>' +
                   '<span class="map-dot"></span>' +
                   '</div>',
                 map: map
