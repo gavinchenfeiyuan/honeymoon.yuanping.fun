@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.68</div>
+      <div id="ver-tag">v0.69</div>
     </div>
   </section>
 
@@ -59,7 +59,7 @@
           text: text,
           position: [lnglat.getLng(), lnglat.getLat()],
           anchor: "center",
-          zIndex: 20,   // 高于路线(5/6)与标记(10)，确保 emoji 不被遮挡
+          zIndex: 20,   // 中层：低于点位(30)、高于路径(5/6)，确保交通 emoji 不被路径遮挡
           clickable: false,
           style: {
             "font-size": "11px",
@@ -154,7 +154,7 @@
               var m = new AMap.Marker({
                 position: [lng, lat],
                 anchor: "bottom-center",
-                zIndex: 10,
+                zIndex: 30,   // 点位信息最顶层：高于 transportation(20) 与路径(5/6)
                 zooms: zooms,
                 content:
                   '<div class="map-dot-wrap">' +

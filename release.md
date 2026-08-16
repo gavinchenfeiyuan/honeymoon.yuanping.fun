@@ -314,3 +314,12 @@
   - 移除方案 D（Catmull-Rom 贝塞尔 + `AMap.BezierCurve`），代码已完全清理无残留
   - 相邻点位连直线，`AMap.Polyline` 单条折线，按 `arrived` 连续段分组着色（已走松金实线 zIndex 6、未走林海翠 zIndex 5）
   - 路线绘制至此定稿为直线，不再做曲线/圆角/导航
+
+## v0.69
+
+- **调整图层层级**（点位信息最顶层）：
+  - 点位 Marker zIndex `10 → 30`（最顶层）
+  - transportation Text zIndex `20`（中层）
+  - 路径 Polyline zIndex `6(已走)/5(未走)`（底层）
+  - 区域叠加 Polygon zIndex `1`（最底）
+  - 层级顺序：点位(30) > transportation(20) > 路径(5/6) > 区域叠加(1)
