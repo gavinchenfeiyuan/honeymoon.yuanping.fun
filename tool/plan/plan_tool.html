@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>蜜月行程表</title>
+  <title>行程</title>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -243,8 +243,7 @@
     .map-tip.err { color: var(--err); }
 
     .table-wrap {
-      overflow: auto;
-      max-height: 45vh;
+      overflow: visible;
     }
 
     table {
@@ -396,6 +395,13 @@
       cursor: pointer;
       vertical-align: middle;
     }
+    .bool-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
 
     /* ===== 行拖拽排序 ===== */
     tbody tr[draggable="true"] {
@@ -485,13 +491,22 @@
       padding: 0 5px;
       font-family: var(--mono);
     }
+
+    /* ===== 打印：取消高度/滚动裁剪，整页可完整打印；隐藏交互控件 ===== */
+    @media print {
+      body, main, #content { height: auto !important; overflow: visible !important; display: block; }
+      header .btn, #statusBar, #dropHint, #help, #emptyState { display: none !important; }
+      .table-card { break-inside: avoid; box-shadow: none; }
+      .map-wrap { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
   </style>
 </head>
 
 <body>
 
   <header>
-    <div class="logo">🥤 蜜月行程表 <span class="dot">path.json</span></div>
+    <div class="logo">🥤 行程 <span class="dot">path.json</span></div>
+    <button id="printBtn" class="btn">🖨️ 打印</button>
     <button id="saveBtn" class="btn btn-primary">💾 保存</button>
   </header>
 
@@ -541,6 +556,7 @@
     const emptyState = $("emptyState");
     $("emptyPick").addEventListener("click", pickFile);
     $("saveBtn").addEventListener("click", saveAll);
+    $("printBtn").addEventListener("click", () => window.print());
 
     /* ============ 状态 ============ */
     function setStatus(msg, cls) {
@@ -725,9 +741,12 @@
           const td = document.createElement("td");
           const v = (key === "plan" && DT_EXPAND) ? dtCellValue(r, f) : (r ? r[f] : undefined);
           if (f === "overnight" || f === "arrived") {
-            // 布尔字段：用勾选框渲染
+            // 布尔字段：用「文字标签 + 勾选框」渲染
             td.classList.add("bool-cell");
             td.dataset.field = f;
+            const label = document.createElement("label");
+            label.className = "bool-label";
+            label.textContent = (f === "overnight") ? "过夜" : "到达";
             const cb = document.createElement("input");
             cb.type = "checkbox";
             cb.className = "bool-check";
@@ -736,7 +755,8 @@
               // 勾选状态即数据，无需额外存储；联动地图刷新（arrived 会影响 index.html 的路线配色）
               updateMap(td.closest(".table-card").dataset.key);
             });
-            td.appendChild(cb);
+            label.appendChild(cb);
+            td.appendChild(label);
           } else if (v === undefined || v === null || v === "") {
             td.className = "empty";
             td.textContent = "";
@@ -983,12 +1003,16 @@
         if (f === "overnight" || f === "arrived") {
           td.classList.add("bool-cell");
           td.textContent = "";
+          const label = document.createElement("label");
+          label.className = "bool-label";
+          label.textContent = (f === "overnight") ? "过夜" : "到达";
           const cb = document.createElement("input");
           cb.type = "checkbox";
           cb.className = "bool-check";
           cb.checked = false;
           cb.addEventListener("change", () => updateMap(td.closest(".table-card").dataset.key));
-          td.appendChild(cb);
+          label.appendChild(cb);
+          td.appendChild(label);
         } else {
           makeEditable(td);
         }

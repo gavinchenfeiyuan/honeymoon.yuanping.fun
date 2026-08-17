@@ -25,7 +25,9 @@ adcode 来源：仅内置 COUNTY_ADCODE（四省 380 县级）。加格达奇区
 """
 import io
 import json
+import logging
 import os
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -39,14 +41,27 @@ REGOEO = "https://restapi.amap.com/v3/geocode/regeo"
 UA = {"User-Agent": "Mozilla/5.0"}
 AMAP_KEY_FILE = os.path.join(ROOT, "amap_key.txt")  # 高德 key 本地文件（gitignore，勿提交）
 
+# ---- 日志配置 ----
+# 默认 INFO；设置环境变量 DEBUG=1 或加命令行参数 --debug 可输出更详细的 DEBUG 日志。
+_LOG_LEVEL = logging.DEBUG if (os.environ.get("DEBUG") or "--debug" in sys.argv) else logging.INFO
+logging.basicConfig(
+    level=_LOG_LEVEL,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger("fetch_county")
+
 
 def _load_amap_key():
     """从本地 amap_key.txt 读取高德 Web 服务 key。文件缺失返回空串。"""
     try:
         with open(AMAP_KEY_FILE, encoding="utf-8") as f:
-            return f.read().strip()
+            key = f.read().strip()
     except Exception:
         return ""
+    if key:
+        log.info("已加载高德 key（长度 %d）", len(key))
+    return key
 
 # 内置兜底表：东北三省 + 内蒙古 全部县级行政区划名 -> adcode（高德行政区划代码）。
 # 数据源：github.com/tombcato/china-zipcode-data（jsDelivr CDN），加格达奇区覆盖为权威值。
@@ -453,6 +468,7 @@ def regeo(lng, lat, key):
     except Exception:
         return {}
     if data.get("status") != "1":
+        log.debug("regeo 失败: status=%s info=%s", data.get("status"), data.get("info"))
         return {}
     ac = (data.get("regeocode") or {}).get("addressComponent") or {}
     # city 字段对直辖市/直筒子市可能为空数组/空串，此时回退到 province
@@ -469,8 +485,10 @@ def fill_city_county(plan):
     """阶段 1：用坐标逆地理编码填充每点的 city/county。返回被更新的点数。"""
     key = _load_amap_key()
     if not key:
-        print("警告: 未找到 " + AMAP_KEY_FILE + "，跳过逆地理编码阶段 1（city/county 保持原值）")
+        log.warning("未找到 %s，跳过逆地理编码阶段 1（city/county 保持原值）", AMAP_KEY_FILE)
         return 0
+    total = sum(1 for it in plan if it and it.get("coordinate"))
+    log.info("阶段 1 开始：对 %d 个有坐标的点做逆地理编码", total)
     updated = 0
     for i, it in enumerate(plan):
         if not it:
@@ -480,27 +498,31 @@ def fill_city_county(plan):
             continue
         parts = str(coord).split(",")
         if len(parts) < 2:
+            log.debug("跳过第 %d 行 %r：坐标格式异常 %r", i, it.get("name"), coord)
             continue
         lng, lat = parts[0].strip(), parts[1].strip()
         try:
             lng, lat = float(lng), float(lat)
         except ValueError:
+            log.debug("跳过第 %d 行 %r：坐标非数值 %r", i, it.get("name"), coord)
             continue
+        log.debug("逆地理编码 [%d] %s @ (%s, %s)", i, it.get("name"), lng, lat)
         res = regeo(lng, lat, key)
         if not res or not res.get("county"):
             continue  # 逆地理编码失败/无区县，保留原值
         changed = False
         if it.get("county") != res["county"]:
-            print(f"  [{i}] {it.get('name')}: county {it.get('county')!r} -> {res['county']!r}")
+            log.info("  [%d] %s: county %r -> %r", i, it.get("name"), it.get("county"), res["county"])
             it["county"] = res["county"]
             changed = True
         if it.get("city") != res["city"]:
-            print(f"  [{i}] {it.get('name')}: city   {it.get('city')!r} -> {res['city']!r}")
+            log.info("  [%d] %s: city   %r -> %r", i, it.get("name"), it.get("city"), res["city"])
             it["city"] = res["city"]
             changed = True
         if changed:
             updated += 1
         time.sleep(0.1)  # 高德配额内低频，避免限流
+    log.info("阶段 1 完成：更新 %d 个点", updated)
     return updated
 
 
@@ -526,6 +548,7 @@ def round_pts(ring, digits=5):
 def fetch_boundaries(adcode):
     """从 DataV GeoAtlas 拉取区划边界，返回多边形环列表（GCJ-02 坐标，与高德一致）。"""
     url = BOUND.format(adcode=adcode)
+    log.debug("拉取边界: %s", url)
     data = _get_json(url)
     rings = []
     for feat in data.get("features", []):
@@ -536,6 +559,7 @@ def fetch_boundaries(adcode):
         elif g.get("type") == "MultiPolygon":
             for poly in coords:
                 rings.extend(poly)
+    log.debug("adcode=%s 解析到 %d 个环", adcode, len(rings))
     return rings
 
 
@@ -544,23 +568,28 @@ def _load_old_areas():
     try:
         return json.load(open(COUNTY_JSON, encoding="utf-8")).get("county_areas", {})
     except Exception:
+        log.debug("读取旧 county.json 失败或不存在，视为空: %s", COUNTY_JSON)
         return {}
 
 
 def main():
+    log.info("开始运行 fetch_county.py")
+    log.info("PATH_JSON   = %s", PATH_JSON)
+    log.info("COUNTY_JSON = %s", COUNTY_JSON)
     data = json.load(open(PATH_JSON, encoding="utf-8"))
     plan = data.get("plan", [])
+    log.info("plan 行数: %d", len(plan))
 
     # ---- 阶段 1：逆地理编码填充 path.json 的 city/county ----
-    print("=== 阶段 1: 逆地理编码填充 city/county ===")
+    log.info("=== 阶段 1: 逆地理编码填充 city/county ===")
     n_updated = fill_city_county(plan)
     if n_updated:
         # 有更新才写回 path.json
         with io.open(PATH_JSON, "w", encoding="utf-8", newline="") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"已更新 {n_updated} 个点，写回 {PATH_JSON}")
+        log.info("已更新 %d 个点，写回 %s", n_updated, PATH_JSON)
     else:
-        print("无字段需要更新（或逆地理编码未启用/全部命中）")
+        log.info("无字段需要更新（或逆地理编码未启用/全部命中）")
 
     # ---- 阶段 2：按 county 拉取边界写 county.json ----
     counties = []
@@ -570,14 +599,18 @@ def main():
         if c and c not in seen:
             seen.add(c)
             counties.append(c)
+    log.info("=== 阶段 2: 按 county 拉取边界，共 %d 个县 ===", len(counties))
 
     old = _load_old_areas()  # 现有 county.json（含已下载的边界）
+    log.info("已有 county.json 边界数: %d", len(old))
 
     county_areas = {}
     stats = []
     for c in counties:
+        log.info("处理 county: %s", c)
         ad = COUNTY_ADCODE.get(c)
         if not ad:
+            log.warning("  %s: 未在 COUNTY_ADCODE 找到 adcode，跳过下载", c)
             stats.append((c, "NO ADCODE", 0, 0))
             if c in old:
                 county_areas[c] = old[c]
@@ -587,10 +620,13 @@ def main():
         if c in old and old[c].get("boundaries"):
             county_areas[c] = old[c]
             stats.append((c, ad, "CACHED", len(old[c]["boundaries"][0])))
+            log.info("  %s: 复用已有边界（CACHED）", c)
             continue
         try:
+            log.info("  %s: 下载边界 adcode=%s ...", c, ad)
             rings = fetch_boundaries(ad)
             if not rings:
+                log.warning("  %s: 拉取为空", c)
                 stats.append((c, ad, "EMPTY", 0))
                 if c in old:
                     county_areas[c] = old[c]
@@ -599,7 +635,9 @@ def main():
             simp = [round_pts(simplify(r)) for r in rings]
             county_areas[c] = {"adcode": ad, "boundaries": simp}
             stats.append((c, ad, "OK", len(simp[0])))
+            log.info("  %s: 下载成功，%d 个环，外环 %d 点", c, len(simp), len(simp[0]))
         except Exception as e:
+            log.exception("  %s: 下载失败", c)
             stats.append((c, ad, "ERR " + str(e), 0))
             if c in old:
                 county_areas[c] = old[c]
@@ -607,19 +645,19 @@ def main():
 
     # 失败保护：若本次一个县都没有（既无缓存也未拉到），禁止用空数据覆盖旧文件
     if not county_areas:
-        print("警告: 未能从 county.json 取到或拉到任何边界，已保留原文件，未写入。")
+        log.warning("未能从 county.json 取到或拉到任何边界，已保留原文件，未写入。")
         return
     with io.open(COUNTY_JSON, "w", encoding="utf-8", newline="") as f:
         f.write(json.dumps({"county_areas": county_areas}, ensure_ascii=False, separators=(",", ":")))
 
-    print("=== 阶段 2 结果: 行政边界写入 county.json ===")
+    log.info("=== 阶段 2 结果: 行政边界写入 county.json ===")
     for c, ad, st, pts in stats:
-        print(f"  {c:<8s} adcode={ad} {st} pts~{pts}")
+        log.info("  %s adcode=%s %s pts~%s", c, ad, st, pts)
     cached = sum(1 for _, _, st, _ in stats if st == "CACHED")
     ok = sum(1 for _, _, st, _ in stats if st == "OK")
-    print(f"成功: {ok}/{len(counties)}（其中 {cached} 个直接复用 county.json，未联网下载）")
+    log.info("成功: %d/%d（其中 %d 个直接复用 county.json，未联网下载）", ok, len(counties), cached)
     size = os.path.getsize(COUNTY_JSON)
-    print(f"已写入 {COUNTY_JSON}（{size:,} 字节）")
+    log.info("已写入 %s（%d 字节）", COUNTY_JSON, size)
 
 
 if __name__ == "__main__":
