@@ -261,11 +261,11 @@
 
 ## v0.62
 
-- **点位标签分级策略改为 `explicit` 字段显式控制**（替代 v0.60 的 county 代表点方案）：
-  - `path.json` 每个点位新增 `explicit` 布尔字段：`true` 的点默认（全 zoom 段 3~20）显示 name，`false` 的点放大到 zoom ≥ 8 才显示 name
-  - 标记 `zooms` 属性按 `explicit` 二选一：`explicit===true` → `[3,20]`，否则 `[8,20]`
+- **点位标签分级策略改为 `overnight` 字段显式控制**（替代 v0.60 的 county 代表点方案）：
+  - `path.json` 每个点位新增 `overnight` 布尔字段：`true` 的点默认（全 zoom 段 3~20）显示 name，`false` 的点放大到 zoom ≥ 8 才显示 name
+  - 标记 `zooms` 属性按 `overnight` 二选一：`overnight===true` → `[3,20]`，否则 `[8,20]`
   - 不再显示 county 名（删除 `.map-dot-county` 样式与代表点逻辑）
-  - 行程骨架（机场/火车站/主要城市/过夜点/关键景点）标 `explicit:true`，同城密集的次要点标 `false`
+  - 行程骨架（机场/火车站/主要城市/过夜点/关键景点）标 `overnight:true`，同城密集的次要点标 `false`
 - 小比例尺只露行程骨架，放大后展开全部点位，避免市区密集点糊成一团
 
 ## v0.63

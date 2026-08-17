@@ -666,9 +666,9 @@
       // 排除由 fetch_county.py 维护的列（仅隐藏显示，数据保留并由读取时按 name 补齐）
       const HIDDEN_FIELDS = ["city", "county"];
       fields = fields.filter(f => !HIDDEN_FIELDS.includes(f));
-      // plan 表固定列顺序：name→explicit→arrived→coordinate→transportation→date→time→note（city/county 隐藏）
+      // plan 表固定列顺序：name→overnight→arrived→coordinate→transportation→date→time→note（city/county 隐藏）
       if (key === "plan") {
-        const ORDER = ["name", "explicit", "arrived", "coordinate", "transportation", "date", "time", "note"];
+        const ORDER = ["name", "overnight", "arrived", "coordinate", "transportation", "date", "time", "note"];
         fields = ORDER.filter(f => fields.includes(f))
           .concat(fields.filter(f => !ORDER.includes(f)));
         fields = expandDateTimeFields(fields);
@@ -724,7 +724,7 @@
         for (const f of fields) {
           const td = document.createElement("td");
           const v = (key === "plan" && DT_EXPAND) ? dtCellValue(r, f) : (r ? r[f] : undefined);
-          if (f === "explicit" || f === "arrived") {
+          if (f === "overnight" || f === "arrived") {
             // 布尔字段：用勾选框渲染
             td.classList.add("bool-cell");
             td.dataset.field = f;
@@ -746,7 +746,7 @@
             td.textContent = String(v);
           }
           td.dataset.field = f;
-          if (!(f === "explicit" || f === "arrived")) makeEditable(td);
+          if (!(f === "overnight" || f === "arrived")) makeEditable(td);
           tr.appendChild(td);
         }
         const tdOp = document.createElement("td");
@@ -980,7 +980,7 @@
         const td = document.createElement("td");
         td.className = "empty";
         td.dataset.field = f;
-        if (f === "explicit" || f === "arrived") {
+        if (f === "overnight" || f === "arrived") {
           td.classList.add("bool-cell");
           td.textContent = "";
           const cb = document.createElement("input");
@@ -1061,21 +1061,21 @@
       }
       return null;
     }
-    // 表级校验：同日（date 相同）内必须有至少一行 explicit=true
+    // 表级校验：同日（date 相同）内必须有至少一行 overnight=true
     // 返回 null 表示通过，否则返回错误描述
     function validatePlanSameDay(rows) {
-      const byDay = new Map();   // date -> { rows:[idx], explicit:bool }
+      const byDay = new Map();   // date -> { rows:[idx], overnight:bool }
       rows.forEach((r, i) => {
         const d = r && r.date !== undefined ? String(r.date) : "";
         if (!d) return;   // 无 date 的行不参与分组校验
-        if (!byDay.has(d)) byDay.set(d, { idxs: [], explicit: false });
+        if (!byDay.has(d)) byDay.set(d, { idxs: [], overnight: false });
         const g = byDay.get(d);
         g.idxs.push(i + 1);
-        if (r.explicit === true) g.explicit = true;
+        if (r.overnight === true) g.overnight = true;
       });
       for (const [d, g] of byDay) {
-        if (!g.explicit) {
-          return "第 " + g.idxs.join("、") + " 行（date=" + d + "）：同日须至少勾选一个 explicit";
+        if (!g.overnight) {
+          return "第 " + g.idxs.join("、") + " 行（date=" + d + "）：同日须至少勾选一个 overnight";
         }
       }
       return null;
@@ -1116,7 +1116,7 @@
         }
         return obj;
       });
-      // plan 表在合并后做表级校验（同日须有 explicit）
+      // plan 表在合并后做表级校验（同日须有 overnight）
       if (key === "plan") {
         const sameDayErr = validatePlanSameDay(rows);
         if (sameDayErr) throw new Error(sameDayErr);
@@ -1140,9 +1140,9 @@
       return data;
     }
 
-    // plan 行键写回顺序：name→explicit→arrived→coordinate→city→county→transportation→date→time→note（未列出的追加末尾）
+    // plan 行键写回顺序：name→overnight→arrived→coordinate→city→county→transportation→date→time→note（未列出的追加末尾）
     function orderPlanKeys(row) {
-      const ORDER = ["name", "explicit", "arrived", "coordinate", "city", "county", "transportation", "date", "time", "note"];
+      const ORDER = ["name", "overnight", "arrived", "coordinate", "city", "county", "transportation", "date", "time", "note"];
       const out = {};
       ORDER.forEach(k => { if (row[k] !== undefined) out[k] = row[k]; });
       Object.keys(row).forEach(k => { if (!(k in out)) out[k] = row[k]; });
@@ -1180,7 +1180,7 @@
     }
 
     async function saveAll() {
-      // 保存前校验（name 非空 / 同日须有 explicit / 时分成对 / 格式），失败则中止不写文件
+      // 保存前校验（name 非空 / 同日须有 overnight / 时分成对 / 格式），失败则中止不写文件
       let pathData;
       try {
         pathData = buildPathData();

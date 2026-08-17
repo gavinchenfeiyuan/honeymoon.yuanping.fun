@@ -148,8 +148,8 @@
               var dayColor = colorOf(String(item.date || "").slice(0, 6));
               var ZOOM_NAME_MIN = 8;   // zoom >= 8 显示具体点位名
               var dotHtml = '<span class="map-dot' + (item.arrived ? ' arrived' : '') + '"></span>';
-              // explicit: true 的点默认（全 zoom 段）显示 name；否则放大到 zoom >= 8 才显示
-              var zooms = (item.explicit === true) ? [3, 20] : [ZOOM_NAME_MIN, 20];
+              // overnight: true 的点默认（全 zoom 段）显示 name；否则放大到 zoom >= 8 才显示
+              var zooms = (item.overnight === true) ? [3, 20] : [ZOOM_NAME_MIN, 20];
 
               // 点位名字下方的日期/时间行：time 非空 → "10:45 9/12"，否则 → "9/12"
               var t = String(item.time || "").trim();
