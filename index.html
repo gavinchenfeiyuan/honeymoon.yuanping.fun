@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.78</div>
+      <div id="ver-tag">v0.79</div>
     </div>
   </section>
 
@@ -169,7 +169,8 @@
                 zooms: zooms,
                 content:
                   '<div class="map-dot-wrap">' +
-                  '<span class="map-dot-name" style="background:' + dayColor + '">' + name + '</span>' +
+                  '<span class="map-dot-name" style="background:' + dayColor + '">' +
+                  (item.overnight === true ? '🌛' : '') + name + '</span>' +
                   (timeLine ? '<span class="map-dot-time">' + timeLine + '</span>' : "") +
                   dotHtml +
                   '</div>',
@@ -215,7 +216,7 @@
                   '<div class="iw-card' + (arrived ? ' is-arrived' : '') + '" style="--iw-tint:' + dayColor + '">' +
                   '<div class="iw-hero">' +
                   '<div class="iw-hero-inner">' +
-                  '<div class="iw-title">' + name + '</div>' +
+                  '<div class="iw-title">' + (item.overnight === true ? '🌛' : '') + name + '</div>' +
                   badge +
                   '</div>' +
                   '</div>' +

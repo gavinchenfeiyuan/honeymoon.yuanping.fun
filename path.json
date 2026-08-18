@@ -2,7 +2,7 @@
  "plan": [
   {
    "name": "通辽机场",
-   "overnight": true,
+   "overnight": false,
    "arrived": false,
    "coordinate": "122.2062,43.559157",
    "city": "通辽市",
