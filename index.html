@@ -54,7 +54,7 @@
 
       // 交通方式标签：用 AMap.Text（2.0 原生，继承自 AMap.Marker）。
       // anchor:'center' 让文字几何中心精确落在 position 坐标点，无 DOMOverlay 的插件/像素换算歧义。
-      function makeTransportLabel(lnglat, text) {
+      function makeTransportLabel(lnglat, text, zooms) {
         // 「；」或「;」触发换行（AMap.Text 需配合 pre-line 才生效）
         text = String(text).replace(/[；;]/g, "\n");
         return new AMap.Text({
@@ -62,6 +62,7 @@
           position: [lnglat.getLng(), lnglat.getLat()],
           anchor: "center",
           zIndex: 20,   // 中层：低于点位(30)、高于路径(5/6)，确保交通 emoji 不被路径遮挡
+          zooms: zooms,   // 跟随目的地 t2 的 name 显隐 zoom 区间
           clickable: false,
           style: {
             "font-size": "11px",
@@ -241,6 +242,7 @@
                 lat: lat,
                 date: String(item.date || "").slice(0, 6),   // 归一化为 YYMMDD
                 arrived: item.arrived === true,
+                overnight: item.overnight === true,
                 transportation: String(item.transportation || "").trim(),
                 time: String(item.time || "").trim()
               });
@@ -287,13 +289,15 @@
               });
             }
             // 交通方式：plan.transportation 非空时，显示在该点前面进入线路的正中间
+            // 显隐 zoom 区间跟随目的地 t2 的点 name 策略（overnight 全缩放段显示；否则 zoom >= 8）
             for (var ti = 0; ti < dayPoints.length - 1; ti++) {
               var f2 = dayPoints[ti], t2 = dayPoints[ti + 1];
               if (t2.transportation) {
                 try {
                   var midLng = (f2.lng + t2.lng) / 2;
                   var midLat = (f2.lat + t2.lat) / 2;
-                  var lbl = makeTransportLabel(new AMap.LngLat(midLng, midLat), t2.transportation);
+                  var lbl = makeTransportLabel(new AMap.LngLat(midLng, midLat), t2.transportation,
+                    (t2.overnight === true) ? [3, 20] : [ZOOM_NAME_MIN, 20]);
                   map.add(lbl);
                 } catch (e) {
                   console.warn("交通标签创建失败（不影响点位/路线）:", e && e.message);
