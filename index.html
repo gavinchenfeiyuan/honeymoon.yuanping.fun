@@ -21,7 +21,7 @@
         <span class="st-col">漠岭</span>
         <span class="st-col">松桦</span>
       </div>
-      <div id="ver-tag">v0.79</div>
+      <div id="ver-tag">v0.80</div>
     </div>
   </section>
 
@@ -62,7 +62,7 @@
           position: [lnglat.getLng(), lnglat.getLat()],
           anchor: "center",
           zIndex: 20,   // 中层：低于点位(30)、高于路径(5/6)，确保交通 emoji 不被路径遮挡
-          zooms: zooms,   // 跟随目的地 t2 的 name 显隐 zoom 区间
+          zooms: zooms,   // 跟随目的地 t2 的点名显隐 zoom 区间
           clickable: false,
           style: {
             "font-size": "11px",
@@ -135,6 +135,7 @@
           var popMarker = null;   // 自定义弹层（AMap.Marker 承载，替代 InfoWindow，避免默认灰框）
           var bad = [];       // coordinate 缺失/格式异常的点
           var dayPoints = []; // {lng,lat,date} 按 plan 顺序，用于绘制路线
+          var ZOOM_NAME_MIN = 8;   // zoom >= 8 显示具体点位名（顶层，供点位与交通标签共用）
           // 严格按 plan 顺序打点
           plan.forEach(function (item, i) {
             var name = item && item.name;
@@ -149,7 +150,6 @@
             try {
               // 地名背景框颜色：同 date 同色（淡化后）
               var dayColor = colorOf(String(item.date || "").slice(0, 6));
-              var ZOOM_NAME_MIN = 8;   // zoom >= 8 显示具体点位名
               var dotHtml = '<span class="map-dot' + (item.arrived ? ' arrived' : '') + '"></span>';
               // overnight: true 的点默认（全 zoom 段）显示 name；否则放大到 zoom >= 8 才显示
               var zooms = (item.overnight === true) ? [3, 20] : [ZOOM_NAME_MIN, 20];

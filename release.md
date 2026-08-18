@@ -405,3 +405,9 @@
 
 - **过夜点位加 🌛 标记**：`overnight: true` 的点位，地图点位名称（`.map-dot-name`）与信息窗标题（`.iw-title`）左侧均显示 🌛 emoji，一眼区分行程中的过夜点
 
+## v0.80
+
+- **🚗 驾车导航按钮**（plan_tool.html）：表格每行新增 🚗 按钮，点击后调用高德 v3 driving 接口，把 transportation 整体替换为 `🚗 Xkm；YhZmZs`（km 向上取整）
+- **transportation 显示**（index.html）：`；`/`;` 触发换行，显隐跟随点位名 zoom 区间（overnight 全段显示，普通点 zoom ≥ 8）
+- **修复** `ZOOM_NAME_MIN` 作用域 bug：普通点 transportation 放大后不显示的根因（变量定义在 forEach 回调内，外部引用为 undefined），提升到顶层
+
