@@ -55,6 +55,8 @@
       // 交通方式标签：用 AMap.Text（2.0 原生，继承自 AMap.Marker）。
       // anchor:'center' 让文字几何中心精确落在 position 坐标点，无 DOMOverlay 的插件/像素换算歧义。
       function makeTransportLabel(lnglat, text) {
+        // 「；」或「;」触发换行（AMap.Text 需配合 pre-line 才生效）
+        text = String(text).replace(/[；;]/g, "\n");
         return new AMap.Text({
           text: text,
           position: [lnglat.getLng(), lnglat.getLat()],
@@ -63,9 +65,9 @@
           clickable: false,
           style: {
             "font-size": "11px",
-            "line-height": "1",
+            "line-height": "1.3",
             "color": "#333",
-            "white-space": "nowrap",
+            "white-space": "pre-line",
             "text-shadow": "0 0 2px #fff, 0 0 3px #fff",
             "background": "transparent",
             "padding": "0",
@@ -200,9 +202,9 @@
                 var locVal = [item.county, item.city].filter(Boolean).join("·");
                 var infoRows =
                   (locVal ? row("🗺", "区域", locVal) : "") +
-                  // 备注：仅显示内容，不带图标与 label；「，」或「\n」触发换行
+                  // 备注：仅显示内容，不带图标与 label；「，」「；」「;」或「\n」触发换行
                   (item.note
-                    ? '<div class="iw-note">' + String(item.note).replace(/，/g, "\n") + '</div>'
+                    ? '<div class="iw-note">' + String(item.note).replace(/[，；;]/g, "\n") + '</div>'
                     : "");
 
                 // 头部徽章：日期/时间

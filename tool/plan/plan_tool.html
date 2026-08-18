@@ -303,13 +303,13 @@
       color: var(--num);
     }
 
-    /* 操作列 & 删除/定位/新增按钮 */
+    /* 操作列 & 删除/定位/新增/导航按钮 */
     thead th.op {
-      width: 92px;
+      width: 132px;
     }
 
     td.op {
-      width: 92px;
+      width: 132px;
       text-align: center;
       white-space: nowrap;
     }
@@ -348,6 +348,29 @@
     }
 
     .loc-btn.busy {
+      opacity: .5;
+      cursor: progress;
+      pointer-events: none;
+    }
+
+    /* 每行「🚗」导航按钮：高德驾车 API 计算 上一行→本行 路程/时间 */
+    .nav-btn {
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      line-height: 1;
+      padding: 3px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .nav-btn:hover {
+      background: rgba(22, 163, 74, .12);
+      filter: saturate(1.2);
+    }
+
+    .nav-btn.busy {
       opacity: .5;
       cursor: progress;
       pointer-events: none;
@@ -860,7 +883,10 @@
         tdOp.className = "op";
         tdOp.appendChild(makeDelBtn(tr));
         tdOp.appendChild(makeAddBtn(tbody, fields, tr));
-        if (key === "plan") tdOp.appendChild(makeLocBtn(tr));
+        if (key === "plan") {
+          tdOp.appendChild(makeLocBtn(tr));
+          tdOp.appendChild(makeNavBtn(tr));
+        }
         tr.appendChild(tdOp);
         tbody.appendChild(tr);
       });
@@ -1049,6 +1075,102 @@
       return btn;
     }
 
+    // 每行「🚗」按钮：高德驾车导航（Web 服务 API v3，JSONP 跨域）
+    // 计算 上一行 → 本行 的驾车路程/时间，整体替换本行 transportation 单元格为「🚗 217km；3h18m11s」
+    function makeNavBtn(tr) {
+      const btn = document.createElement("button");
+      btn.className = "nav-btn";
+      btn.textContent = "🚗";
+      btn.title = "计算上一行 → 本行的驾车路程/时间，整体替换 transportation";
+      let busy = false;
+      btn.addEventListener("click", async () => {
+        if (busy) return;
+        const curTd = tr.querySelector("td[data-field='coordinate']");
+        const nameTd = tr.querySelector("td[data-field='name']");
+        const name = nameTd ? nameTd.textContent.trim() : "";
+        const cur = curTd ? curTd.textContent.trim() : "";
+        const coordOk = c => /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(c);
+        // 上一行：跳过非表格行节点
+        let prevTr = tr.previousElementSibling;
+        while (prevTr && !(prevTr instanceof HTMLTableRowElement)) prevTr = prevTr.previousElementSibling;
+        const prevTd = prevTr ? prevTr.querySelector("td[data-field='coordinate']") : null;
+        const prev = prevTd ? prevTd.textContent.trim() : "";
+        if (!name) { setStatus("⚠️ 该行没有 name，无法计算导航", "warn"); return; }
+        if (!coordOk(cur)) { setStatus("⚠️「" + name + "」本行 coordinate 无效，无法计算导航", "warn"); return; }
+        if (!prevTr || !coordOk(prev)) { setStatus("⚠️「" + name + "」是第一行，没有上一段可计算", "warn"); return; }
+        if (!webAmapKey) { setStatus("⚠️ 未取到高德 Web Key（需通过 serve.py 启动），无法计算导航", "warn"); return; }
+        busy = true;
+        btn.classList.add("busy");
+        btn.textContent = "…";
+        setStatus("正在计算「" + name + "」驾车导航 …");
+        const r = await drivingRoute(prev, cur);
+        btn.classList.remove("busy");
+        btn.textContent = "🚗";
+        busy = false;
+        if (!r) { setStatus("⚠️「" + name + "」驾车导航失败（Key 权限/网络/无路线），未写入", "warn"); return; }
+        const distTxt = fmtDist(r.distance), durTxt = fmtDur(r.duration);
+        const transTd = tr.querySelector("td[data-field='transportation']");
+        if (transTd) {
+          // 整体替换为「🚗 217km；3h18m11s」（再次点击直接覆盖，天然幂等）
+          transTd.textContent = "🚗 " + distTxt + "；" + durTxt;
+          transTd.classList.toggle("empty", transTd.textContent === "");
+        }
+        setStatus("✅「" + name + "」 " + distTxt + "；" + durTxt, "ok");
+      });
+      return btn;
+    }
+
+    // 高德驾车导航 JSONP：origin/destination 均为 "lng,lat"，resolve {distance(米), duration(秒)}；失败 resolve(null)
+    function drivingRoute(origin, destination) {
+      return new Promise(resolve => {
+        if (!webAmapKey) { resolve(null); return; }
+        const cbName = "__amap_drv_" + Math.random().toString(36).slice(2);
+        const timeout = setTimeout(() => { cleanup(); resolve(null); }, 20000);
+        function cleanup() {
+          clearTimeout(timeout);
+          const s = document.getElementById(cbName);
+          if (s) s.remove();
+          delete window[cbName];
+        }
+        window[cbName] = data => {
+          cleanup();
+          try {
+            if (data && data.status === "1" && data.route && data.route.paths && data.route.paths[0]) {
+              const p = data.route.paths[0];
+              const distance = Number(p.distance), duration = Number(p.duration);
+              if (isFinite(distance) && isFinite(duration)) { resolve({ distance, duration }); return; }
+            }
+            resolve(null);
+          } catch (_) { resolve(null); }
+        };
+        const s = document.createElement("script");
+        s.id = cbName;
+        s.src = "https://restapi.amap.com/v3/direction/driving?origin=" + encodeURIComponent(origin)
+          + "&destination=" + encodeURIComponent(destination)
+          + "&key=" + encodeURIComponent(webAmapKey) + "&callback=" + cbName;
+        s.onerror = () => { cleanup(); resolve(null); };
+        document.head.appendChild(s);
+      });
+    }
+
+    // 距离：米 → km（向上取整；<1km 显示米）
+    function fmtDist(m) {
+      if (m < 1000) return Math.ceil(m) + "m";
+      return Math.ceil(m / 1000) + "km";
+    }
+    // 时长：秒 → h/m/s（跳过零值单位；全零显示 0s），如 3h18m11s / 16m43s / 45m
+    function fmtDur(s) {
+      s = Math.max(0, Math.round(s));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      let out = "";
+      if (h) out += h + "h";
+      if (m) out += m + "m";
+      if (sec) out += sec + "s";
+      return out || "0s";
+    }
+
     // 每行「＋」按钮：在该行下方插入新行
     function makeAddBtn(tbody, fields, tr) {
       const btn = document.createElement("button");
@@ -1110,7 +1232,10 @@
       tdOp.appendChild(makeDelBtn(tr));
       tdOp.appendChild(makeAddBtn(tbody, fields, tr));
       const _cardKey = (afterTr && afterTr.closest(".table-card")) ? afterTr.closest(".table-card").dataset.key : (tr.closest(".table-card") && tr.closest(".table-card").dataset.key);
-      if (_cardKey === "plan") tdOp.appendChild(makeLocBtn(tr));
+      if (_cardKey === "plan") {
+        tdOp.appendChild(makeLocBtn(tr));
+        tdOp.appendChild(makeNavBtn(tr));
+      }
       tr.appendChild(tdOp);
       if (afterTr) afterTr.after(tr); else tbody.appendChild(tr);
       renumber(tbody);
